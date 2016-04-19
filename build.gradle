@@ -1,0 +1,55 @@
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath group: 'com.nordija', name: 'gitMavenVersioning',
+                version: '1.1-SNAPSHOT'
+    }
+}
+apply plugin: 'groovy'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+apply plugin: 'maven'
+apply plugin: 'com.nordija.versionManager'
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task gitVersions (type: com.nordija.VersionManagerTask) {
+    doLast {
+        println 'Branch: ' + System.properties.gitBranch;
+        println 'closestTagHash: ' + System.properties.gitClosestHighestTag;
+        println 'closestTag: ' +System.properties.gitClosestTag;
+        println 'closestTagCount: ' +System.properties.gitClosestTagCount;
+        println 'currentShortHash: ' +System.properties.gitCurrentShortCommitHash;
+        println 'currentHash: ' +System.properties.gitCurrentCommitHash;
+        println 'mavenVersion: ' +System.properties.mavenVersion;
+        println 'git describe: ' +System.properties.gitDescribe;
+
+    }
+}
+
+compileGroovy.dependsOn gitVersions;
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+group = 'com.nordija'
+version = System.properties.mavenVersion
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('../repo'))
+        }
+    }
+}
