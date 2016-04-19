@@ -24,17 +24,17 @@ repositories {
 }
 
 task gitVersions (type: com.nordija.VersionManagerTask) {
-    doLast {
-        println 'Branch: ' + System.properties.gitBranch;
-        println 'closestTagHash: ' + System.properties.gitClosestHighestTag;
-        println 'closestTag: ' +System.properties.gitClosestTag;
-        println 'closestTagCount: ' +System.properties.gitClosestTagCount;
-        println 'currentShortHash: ' +System.properties.gitCurrentShortCommitHash;
-        println 'currentHash: ' +System.properties.gitCurrentCommitHash;
-        println 'mavenVersion: ' +System.properties.mavenVersion;
-        println 'git describe: ' +System.properties.gitDescribe;
-
-    }
+//    doLast {
+//        println 'Branch: ' + System.properties.gitBranch;
+//        println 'closestTagHash: ' + System.properties.gitClosestHighestTag;
+//        println 'closestTag: ' +System.properties.gitClosestTag;
+//        println 'closestTagCount: ' +System.properties.gitClosestTagCount;
+//        println 'currentShortHash: ' +System.properties.gitCurrentShortCommitHash;
+//        println 'currentHash: ' +System.properties.gitCurrentCommitHash;
+//        println 'mavenVersion: ' +System.properties.mavenVersion;
+//        println 'git describe: ' +System.properties.gitDescribe;
+//
+//    }
 }
 
 compileGroovy.dependsOn gitVersions;
