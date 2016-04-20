@@ -37,6 +37,10 @@ class VersionManagerTask extends DefaultTask {
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
         System.setProperty("gitDescribe",gitDescribe);
+        if (mavenVersion != null) {
+            getProject().version = mavenVersion
+        }
+
 
     }
 
@@ -201,6 +205,9 @@ class VersionManagerTask extends DefaultTask {
                     minor +
                     "." +
                     bugfix);
+            if (isProjectDirty()) {
+                mavenVersion += '-dirty'
+            }
         }
     }
 
@@ -213,6 +220,10 @@ class VersionManagerTask extends DefaultTask {
             } else {
                 gitDescribe = getMavenVersion()+ '-' + closestTagCount +'-'+ currentShortCommitHash;
             }
+        }
+        if (isProjectDirty()) {
+            gitDescribe = gitDescribe.replaceAll('-dirty','');
+            gitDescribe += '-dirty'
         }
 
     }
@@ -233,6 +244,20 @@ class VersionManagerTask extends DefaultTask {
         }
     }
 
+    boolean isProjectDirty() {
+        try {
+            def stdout = new ByteArrayOutputStream()
+            def stderr = new ByteArrayOutputStream()
+            ExecResult result = this.project.exec({
+                it.commandLine 'git', 'status';
+                it.standardOutput = stdout;
+                it.errorOutput = stderr
+            });
+            return !stdout.toString().trim().contains('nothing to commit, working directory clean');
+        } catch (ignored) {
+            return false;
+        }
+    }
 
     int compareVersions(String v1, String v2) {
 

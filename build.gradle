@@ -1,14 +1,22 @@
 buildscript {
     repositories {
         mavenLocal()
+        jcenter()
+        maven { url "https://ssl.nordija.com/artifactory/NordijaCentral"
+            credentials {
+                username = gradleUsername
+                password = gradlePassword
+            }
+        }
     }
     dependencies {
-        classpath group: 'com.nordija', name: 'gitMavenVersioning',
-                version: '1.0.0'
+        classpath "com.nordija:gitMavenVersioning:1.0.0"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0"
     }
 }
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'groovy'
-
+apply plugin: 'maven-publish'
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -22,26 +30,35 @@ repositories {
     mavenCentral()
 }
 
-apply plugin: 'com.nordija.versionManager'
-task gitVersions (type: com.nordija.VersionManagerTask) {
-    doLast {
-        project.version = System.properties.mavenVersion
+artifactory {
+    contextUrl = 'https://ssl.nordija.com/artifactory/'
+    publish {
+        repository {
+            repoKey = 'fokuson-modules-release-local'
+            username = gradleUsername
+            password = gradlePassword
+            maven = true
+        }
+        defaults {
+            publications ('mavenJava')
+        }
     }
 }
 
-clean.dependsOn gitVersions;
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+apply plugin: 'com.nordija.versionManager'
+plugins.apply com.nordija.VersionManagerPlugin
+
 
 dependencies {
     testCompile 'junit:junit:4.11'
 }
 
 group = 'com.nordija'
-version = System.properties.mavenVersion
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            mavenLocal()
-        }
-    }
-}
+version = '1.0.0'
