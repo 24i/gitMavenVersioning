@@ -144,6 +144,7 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             closestTag = "0.0.0";
         }
+
     }
 
     void findCountFromClosestTagHash()  {
@@ -205,7 +206,7 @@ class VersionManagerTask extends DefaultTask {
 
     void findGitDescribeVersion() {
         if (currentCommitHash.equals(closestHighestTagHash)) {
-            closestTag;
+            gitDescribe = closestTag;
         } else {
             if (branch.equals('master')) {
                 gitDescribe = getMavenVersion()+ '-'+ currentShortCommitHash;
@@ -252,8 +253,4 @@ class VersionManagerTask extends DefaultTask {
 
         return compareVersions(tail1, tail2);
     }
-
-
-
-
 }
