@@ -14,6 +14,7 @@ class VersionManagerTask extends DefaultTask {
     String currentCommitHash;
     String mavenVersion;
     String gitDescribe;
+    boolean snapshot = true;
 
     @TaskAction
     def findGitVersions() {
@@ -30,13 +31,14 @@ class VersionManagerTask extends DefaultTask {
 
     void setVersions() {
         System.setProperty("gitBranch",branch);
-        System.setProperty("gitClosestHighestTag",closestHighestTagHash);
-        System.setProperty("gitClosestTag",closestTag);
-        System.setProperty("gitClosestTagCount",closestTagCount);
+        System.setProperty("gitHighestTagHash",closestHighestTagHash);
+        System.setProperty("gitHighestTag",closestTag);
+        System.setProperty("gitHighestTagCount",closestTagCount);
         System.setProperty("gitCurrentShortCommitHash",currentShortCommitHash);
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
         System.setProperty("gitDescribe",gitDescribe);
+        System.setProperty("versionSnapshot",''+snapshot);
         if (mavenVersion != null) {
             getProject().version = mavenVersion
         }
@@ -174,6 +176,7 @@ class VersionManagerTask extends DefaultTask {
         def matcher = ( closestTag =~ versionSplit );
         if (closestHighestTagHash.equals(currentCommitHash)) {
             mavenVersion = closestTag;
+            snapshot = false;
         } else {
             def major = matcher[0][1];
             def minor = matcher[0][2];
