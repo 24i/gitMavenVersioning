@@ -54,11 +54,12 @@ publishing {
 }
 apply plugin: 'com.nordija.versionManager'
 plugins.apply com.nordija.VersionManagerPlugin
-
+afterEvaluate {
+    tasks.findVersion.execute()
+}
 
 dependencies {
     testCompile 'junit:junit:4.11'
 }
 
 group = 'com.nordija'
-version = '1.0.0'
