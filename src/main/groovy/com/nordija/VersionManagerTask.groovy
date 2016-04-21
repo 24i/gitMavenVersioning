@@ -205,9 +205,6 @@ class VersionManagerTask extends DefaultTask {
                     minor +
                     "." +
                     bugfix);
-            if (isProjectDirty()) {
-                mavenVersion += '-dirty'
-            }
         }
     }
 
@@ -220,10 +217,6 @@ class VersionManagerTask extends DefaultTask {
             } else {
                 gitDescribe = getMavenVersion()+ '-' + closestTagCount +'-'+ currentShortCommitHash;
             }
-        }
-        if (isProjectDirty()) {
-            gitDescribe = gitDescribe.replaceAll('-dirty','');
-            gitDescribe += '-dirty'
         }
 
     }

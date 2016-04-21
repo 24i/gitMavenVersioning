@@ -13,8 +13,17 @@ class VersionManagerPlugin implements Plugin<Project> {
             group = 'Help'
             description = 'Show the project version'
         }
+        project.task('findVersion') {
+            group = 'task'
+            description = 'Find the version from git system'
+        }
         project.tasks.showVersion << {
             println "Version: " + project.version
         }
+        project.tasks.findVersion << {
+            project.tasks.version.execute();
+            println "Version: " + project.version
+        }
+
     }
 }
