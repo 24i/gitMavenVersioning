@@ -123,17 +123,49 @@ class VersionManagerTask extends DefaultTask {
                 }
                 this.closestHighestTagHash = localClosestHighestTag;
             } else {
-                ExecResult result = this.project.exec({
-                    it.commandLine 'git','rev-list', '--tags', '--max-count=1'
-                    it.standardOutput = stdout
-                    it.errorOutput = stderr;
-                });
-                this.closestHighestTagHash = stdout.toString().trim()
+                if (branch.startsWith("bugfix_")) {
+                    String version = highestVersionNumber()
+                    ExecResult result = this.project.exec({
+                        it.commandLine 'git', 'rev-list', '-n', '1', version
+                        it.standardOutput = stdout
+                        it.errorOutput = stderr;
+                    });
+                    this.closestHighestTagHash = stdout.toString().trim()
+                } else {
+                    ExecResult result = this.project.exec({
+                        it.commandLine 'git', 'rev-list', '--tags', '--max-count=1'
+                        it.standardOutput = stdout
+                        it.errorOutput = stderr;
+                    });
+                    this.closestHighestTagHash = stdout.toString().trim()
+                }
             }
         }
         catch (ignored) {
             this.closestHighestTagHash = "0";
         }
+    }
+
+    private String highestVersionNumber() {
+        def stderr = new ByteArrayOutputStream()
+        def stdout = new ByteArrayOutputStream()
+
+        def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".");
+        ExecResult result = this.project.exec({
+            it.commandLine 'git', 'tag', '-l', extractedVersion + '*'
+            it.standardOutput = stdout
+            it.errorOutput = stderr;
+        });
+        def outputString = stdout.toString().trim();
+        def hashes;
+        if (outputString.contains('\n')) {
+            hashes = outputString.split('\n');
+        }
+        def version = '0.0.0';
+        for (String item : hashes) {
+            version = item;
+        }
+        version
     }
 
     void findGitClosestTag () {
