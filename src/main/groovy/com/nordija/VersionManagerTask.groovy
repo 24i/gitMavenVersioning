@@ -10,16 +10,19 @@ class VersionManagerTask extends DefaultTask {
     String closestHighestTagHash;
     String closestTag;
     String closestTagCount;
+    String commitCount;
     String currentShortCommitHash;
     String currentCommitHash;
     String mavenVersion;
     String gitDescribe;
+    String gitPaddedVersionCount;
     boolean snapshot = true;
 
     @TaskAction
     def findGitVersions() {
         findBranch()
         findClosestTagHash()
+        findCommitCount();
         findGitClosestTag();
         findCurrentCommitHash();
         findCurrentCommitShortHash();
@@ -29,15 +32,34 @@ class VersionManagerTask extends DefaultTask {
         setVersions();
     }
 
+
+    void findCommitCount() {
+        def stdout = new ByteArrayOutputStream()
+        def stderr = new ByteArrayOutputStream()
+        try {
+            ExecResult result = this.project.exec({
+                it.commandLine 'git', 'rev-list', 'HEAD','--count'
+                it.standardOutput = stdout
+                it.errorOutput = stderr
+            });
+            commitCount =  stdout.toString().trim()
+        }
+        catch (ignored) {
+            commitCount = "0";
+        }
+    }
+
     void setVersions() {
         System.setProperty("gitBranch",branch);
         System.setProperty("gitHighestTagHash",closestHighestTagHash);
         System.setProperty("gitHighestTag",closestTag);
         System.setProperty("gitHighestTagCount",closestTagCount);
+        System.setProperty("gitCommitCount",commitCount);
         System.setProperty("gitCurrentShortCommitHash",currentShortCommitHash);
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
         System.setProperty("gitDescribe",gitDescribe);
+        System.setProperty("gitPaddedVersionCount",gitPaddedVersionCount);
         System.setProperty("versionSnapshot",''+snapshot);
         if (mavenVersion != null) {
             getProject().version = mavenVersion
@@ -226,7 +248,7 @@ class VersionManagerTask extends DefaultTask {
                     gitBranch = "UNKNOWN";
                 } else if (gitBranch.length() >= 11) {
                     if (gitBranch.startsWith("SPRINT-")) {
-                        startIdx = 6;
+                        startIdx = 7;
                     }
                     gitBranch = gitBranch.substring(startIdx, endIdx);
                 } else {
@@ -235,6 +257,15 @@ class VersionManagerTask extends DefaultTask {
                 minor = minor.toLong() + 1;
                 bugfix = "0-" + gitBranch + "-SNAPSHOT";
             }
+            def bugfixExtracted = '0';
+            if (bugfix.indexOf('-')) {
+                bugfixExtracted = bugfix.substring(0,bugfix.indexOf('-'));
+            } else {
+                bugfixExtracted = bugfix;
+            }
+            gitPaddedVersionCount = major +
+                    String.format("%02d", minor) +
+                    String.format("%04d", bugfixExtracted);
             mavenVersion = (major +
                     "." +
                     minor +

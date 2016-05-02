@@ -10,7 +10,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.nordija:gitMavenVersioning:1.0.0"
+        classpath "com.nordija:gitMavenVersioning:1.0.1"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0"
     }
 }
