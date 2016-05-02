@@ -180,14 +180,16 @@ class VersionManagerTask extends DefaultTask {
         });
         def outputString = stdout.toString().trim();
         def hashes;
+        def version = '0.0.0';
         if (outputString.contains('\n')) {
             hashes = outputString.split('\n');
+            for (String item : hashes) {
+                version = item;
+            }
+        } else {
+            version = outputString
         }
-        def version = '0.0.0';
-        for (String item : hashes) {
-            version = item;
-        }
-        version
+        return version;
     }
 
     void findGitClosestTag () {
@@ -264,8 +266,8 @@ class VersionManagerTask extends DefaultTask {
                 bugfixExtracted = bugfix;
             }
             gitPaddedVersionCount = major +
-                    String.format("%02d", minor) +
-                    String.format("%04d", bugfixExtracted);
+                    String.format("%02d", minor.toLong()) +
+                    String.format("%04d", bugfixExtracted.toLong());
             mavenVersion = (major +
                     "." +
                     minor +
