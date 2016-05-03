@@ -284,7 +284,7 @@ class VersionManagerTask extends DefaultTask {
             gitPaddedVersionCount = major +
                     String.format("%02d", minor.toLong()) +
                     String.format("%02d", bugfixExtracted.toLong()) +
-                    String.format("%04d", commitCount);
+                    String.format("%04d", commitCount.toLong());
             mavenVersion = (major +
                     "." +
                     minor +
@@ -339,8 +339,11 @@ class VersionManagerTask extends DefaultTask {
                 it.errorOutput = stderr
             });
             def resultValue = stdout.toString().trim();
-            logger.debug('isDirty: ' + !resultValue.split("\n").size() > 0)
-            return !resultValue.split("\n").size() > 0
+            if (resultValue.length() > 2) {
+                return resultValue.split("\n").size() > 0
+            } else {
+                return false;
+            }
         } catch (ignored) {
             return false;
         }
