@@ -47,6 +47,7 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             commitCount = "0";
         }
+        logger.debug("Found commit count: " + commitCount)
     }
 
     void setVersions() {
@@ -59,7 +60,11 @@ class VersionManagerTask extends DefaultTask {
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
         System.setProperty("gitDescribe",gitDescribe);
-        System.setProperty("gitPaddedVersionCount",gitPaddedVersionCount);
+        if (gitPaddedVersionCount != null) {
+            println gitPaddedVersionCount
+            System.setProperty("gitPaddedVersionCount", gitPaddedVersionCount);
+        }
+
         System.setProperty("versionSnapshot",''+snapshot);
         if (mavenVersion != null) {
             getProject().version = mavenVersion
@@ -82,6 +87,7 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             currentShortCommitHash = "0";
         }
+        logger.debug("Found currentShortCommitHash: " + currentShortCommitHash)
     }
 
     void findCurrentCommitHash() {
@@ -98,6 +104,7 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             currentCommitHash = "NoHashFound";
         }
+        logger.debug("Found currentCommitHash: " + currentCommitHash)
     }
 
 
@@ -115,6 +122,8 @@ class VersionManagerTask extends DefaultTask {
         } catch (ignored) {
             branch = "error";
         }
+        logger.debug("Found branch: " + branch)
+
     }
 
     void findClosestTagHash() {
@@ -166,6 +175,8 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             this.closestHighestTagHash = "0";
         }
+        logger.debug("Found closestHighestTagHash: " + closestHighestTagHash)
+
     }
 
     private String highestVersionNumber() {
@@ -206,7 +217,7 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             closestTag = "0.0.0";
         }
-
+        logger.debug("Found ClosestTag: " + closestTag)
     }
 
     void findCountFromClosestTagHash()  {
@@ -223,6 +234,8 @@ class VersionManagerTask extends DefaultTask {
         catch (ignored) {
             closestTagCount =  "0";
         }
+        logger.debug("Found tagCount: " + closestTagCount)
+
     }
 
     void findMavenVersion() {
@@ -233,6 +246,9 @@ class VersionManagerTask extends DefaultTask {
         if (closestHighestTagHash.equals(currentCommitHash)) {
             mavenVersion = closestTag;
             snapshot = false;
+            if (isProjectDirty()) {
+                mavenVersion += '-dirty'
+            }
         } else {
             def major = matcher[0][1];
             def minor = matcher[0][2];
@@ -267,13 +283,19 @@ class VersionManagerTask extends DefaultTask {
             }
             gitPaddedVersionCount = major +
                     String.format("%02d", minor.toLong()) +
-                    String.format("%04d", bugfixExtracted.toLong());
+                    String.format("%02d", bugfixExtracted.toLong()) +
+                    String.format("%04d", commitCount);
             mavenVersion = (major +
                     "." +
                     minor +
                     "." +
                     bugfix);
+            if (isProjectDirty()) {
+                mavenVersion += '-dirty'
+            }
         }
+        logger.debug("Found mavenVersion: " + mavenVersion)
+        logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
     }
 
     void findGitDescribeVersion() {
@@ -310,11 +332,11 @@ class VersionManagerTask extends DefaultTask {
             def stdout = new ByteArrayOutputStream()
             def stderr = new ByteArrayOutputStream()
             ExecResult result = this.project.exec({
-                it.commandLine 'git', 'status';
+                it.commandLine 'git', 'status', '--porcelain';
                 it.standardOutput = stdout;
                 it.errorOutput = stderr
             });
-            return !stdout.toString().trim().contains('nothing to commit, working directory clean');
+            return !stdout.toString().trim().split("\n").size() > 0
         } catch (ignored) {
             return false;
         }
