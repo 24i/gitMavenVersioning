@@ -308,7 +308,7 @@ class VersionManagerTask extends DefaultTask {
                 gitDescribe = getMavenVersion()+ '-' + closestTagCount +'-'+ currentShortCommitHash;
             }
         }
-
+        logger.debug("found gitDescribe: " + gitDescribe)
     }
 
 
@@ -321,7 +321,9 @@ class VersionManagerTask extends DefaultTask {
                 it.standardOutput = stdout;
                 it.errorOutput = stderr
             });
-            return stdout.toString().trim();
+            def returnValue = stdout.toString().trim();
+            logger.debug('ClosestTagForHash: ' + hash + ' tag: ' + returnValue)
+            return returnValue;
         } catch (ignored) {
             return "0.0.0";
         }
@@ -336,7 +338,9 @@ class VersionManagerTask extends DefaultTask {
                 it.standardOutput = stdout;
                 it.errorOutput = stderr
             });
-            return !stdout.toString().trim().split("\n").size() > 0
+            def result = stdout.toString().trim();
+            logger.debug('isDirty: ' + !result.split("\n").size() > 0)
+            return !result.split("\n").size() > 0
         } catch (ignored) {
             return false;
         }
