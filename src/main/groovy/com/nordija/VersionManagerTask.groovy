@@ -338,9 +338,9 @@ class VersionManagerTask extends DefaultTask {
                 it.standardOutput = stdout;
                 it.errorOutput = stderr
             });
-            def result = stdout.toString().trim();
-            logger.debug('isDirty: ' + !result.split("\n").size() > 0)
-            return !result.split("\n").size() > 0
+            def resultValue = stdout.toString().trim();
+            logger.debug('isDirty: ' + !resultValue.split("\n").size() > 0)
+            return !resultValue.split("\n").size() > 0
         } catch (ignored) {
             return false;
         }
