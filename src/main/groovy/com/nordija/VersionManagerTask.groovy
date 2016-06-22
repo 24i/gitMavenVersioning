@@ -261,10 +261,10 @@ class VersionManagerTask extends DefaultTask {
                 bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT";
             } else {
                 def startIdx = 0;
-                def endIdx = 10;
+                def endIdx = 11;
                 if (gitBranch == null) {
                     gitBranch = "UNKNOWN";
-                } else if (gitBranch.length() >= 11) {
+                } else if (gitBranch.length() >= endIdx) {
                     if (gitBranch.startsWith("SPRINT-")) {
                         startIdx = 7;
                     }
