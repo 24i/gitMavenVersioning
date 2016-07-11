@@ -1,11 +1,11 @@
 # Build of this plugin
 This is how to build the plugin and install it in your local repository
 
-    gradlew clean install
+    ./gradlew clean install
 
 To build from the build server and install it in artifactory
 
-    gradlew clean artifactoryPublish
+    ./gradlew clean artifactoryPublish
 
 # Usage of the plugin
 Include this in the **build.gradle** file
