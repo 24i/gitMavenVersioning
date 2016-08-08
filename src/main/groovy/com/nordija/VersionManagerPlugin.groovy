@@ -28,6 +28,7 @@ class VersionManagerPlugin implements Plugin<Project> {
             println "Derived values based on above information: "
             println "Use in maven version and gradle version (System.properties.mavenVersion): " + System.properties.mavenVersion;
             println "Use as part of artifact name (System.properties.gitDescribe): " + System.properties.gitDescribe;
+            println "Use as part of artifact name (System.properties.gitAppDescribe): " + System.properties.gitAppDescribe;
             println "Use as versionGitNumber (System.properties.gitPaddedVersionCount): " + System.properties.gitPaddedVersionCount;
             println "Use as part of artifact name (System.properties.versionSnapshot): " + System.properties.versionSnapshot;
         }

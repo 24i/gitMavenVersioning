@@ -15,6 +15,7 @@ class VersionManagerTask extends DefaultTask {
     String currentCommitHash;
     String mavenVersion;
     String gitDescribe;
+    String gitAppDescribe;
     String gitPaddedVersionCount;
     boolean snapshot = true;
 
@@ -29,6 +30,7 @@ class VersionManagerTask extends DefaultTask {
         findCountFromClosestTagHash();
         findMavenVersion();
         findGitDescribeVersion();
+        findGitAppDescribeVersion();
         setVersions();
     }
 
@@ -309,6 +311,19 @@ class VersionManagerTask extends DefaultTask {
             }
         }
         logger.debug("found gitDescribe: " + gitDescribe)
+    }
+
+    void findGitAppDescribeVersion() {
+        if (currentCommitHash.equals(closestHighestTagHash)) {
+            gitAppDescribe = closestTag;
+        } else {
+            if (branch.equals('master')) {
+                gitAppDescribe = closestTag +'-'+ currentShortCommitHash;
+            } else {
+                gitAppDescribe = closestTag +'-'+ closestTagCount +'-'+ currentShortCommitHash;
+            }
+        }
+        logger.debug("found gitAppDescribe: " + gitAppDescribe)
     }
 
 
