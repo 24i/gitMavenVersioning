@@ -63,6 +63,7 @@ class VersionManagerTask extends DefaultTask {
         System.setProperty("gitCurrentShortCommitHash",currentShortCommitHash);
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
+        System.setProperty("appVersion",appVersion);
         System.setProperty("gitDescribe",gitDescribe);
         System.setProperty("gitAppDescribe",gitAppDescribe);
         if (gitPaddedVersionCount != null) {
