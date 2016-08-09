@@ -14,6 +14,7 @@ class VersionManagerTask extends DefaultTask {
     String currentShortCommitHash;
     String currentCommitHash;
     String mavenVersion;
+    String appVersion;
     String gitDescribe;
     String gitAppDescribe;
     String gitPaddedVersionCount;
@@ -29,6 +30,7 @@ class VersionManagerTask extends DefaultTask {
         findCurrentCommitShortHash();
         findCountFromClosestTagHash();
         findMavenVersion();
+        findAppVersion();
         findGitDescribeVersion();
         findGitAppDescribeVersion();
         setVersions();
@@ -62,6 +64,7 @@ class VersionManagerTask extends DefaultTask {
         System.setProperty("gitCurrentCommitHash",currentCommitHash);
         System.setProperty("mavenVersion",mavenVersion);
         System.setProperty("gitDescribe",gitDescribe);
+        System.setProperty("gitAppDescribe",gitAppDescribe);
         if (gitPaddedVersionCount != null) {
             println gitPaddedVersionCount
             System.setProperty("gitPaddedVersionCount", gitPaddedVersionCount);
@@ -300,6 +303,61 @@ class VersionManagerTask extends DefaultTask {
         logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
     }
 
+    void findAppVersion() {
+        def closestTag = closestTag;
+        def gitBranch = branch;
+        def versionSplit = /([0-9]+).([0-9]+).([0-9]+).*/;
+        def matcher = ( closestTag =~ versionSplit );
+        if (closestHighestTagHash.equals(currentCommitHash)) {
+            appVersion = closestTag;
+            snapshot = false;
+            if (isProjectDirty()) {
+                appVersion += '-dirty'
+            }
+        } else {
+            def major = matcher[0][1];
+            def minor = matcher[0][2];
+            def bugfix = matcher[0][3];
+
+            if (gitBranch.equals("master")) {
+                minor = minor.toLong() + 1;
+                bugfix = "0";
+            } else if (gitBranch.startsWith("bugfix")) {
+                bugfix = bugfix.toLong();
+            } else {
+                def startIdx = 0;
+                def endIdx = 11;
+                if (gitBranch == null) {
+                    gitBranch = "UNKNOWN";
+                } else if (gitBranch.length() >= endIdx) {
+                    if (gitBranch.startsWith("SPRINT-")) {
+                        startIdx = 7;
+                    }
+                    gitBranch = gitBranch.substring(startIdx, endIdx);
+                } else {
+                    gitBranch = gitBranch.substring(startIdx, gitBranch.length());
+                }
+                minor = minor.toLong() + 1;
+                bugfix = "0-" + gitBranch;
+            }
+            def bugfixExtracted = '0';
+            gitPaddedVersionCount = major +
+                    String.format("%02d", minor.toLong()) +
+                    String.format("%02d", bugfix.toLong()) +
+                    String.format("%04d", commitCount.toLong());
+            appVersion = (major +
+                    "." +
+                    minor +
+                    "." +
+                    bugfix);
+            if (isProjectDirty()) {
+                appVersion += '-dirty'
+            }
+        }
+        logger.debug("Found appVersion: " + appVersion)
+        logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
+    }
+
     void findGitDescribeVersion() {
         if (currentCommitHash.equals(closestHighestTagHash)) {
             gitDescribe = closestTag;
@@ -318,9 +376,9 @@ class VersionManagerTask extends DefaultTask {
             gitAppDescribe = closestTag;
         } else {
             if (branch.equals('master')) {
-                gitAppDescribe = closestTag +'-'+ currentShortCommitHash;
+                gitAppDescribe = getAppVersion()+ '-'+ currentShortCommitHash;
             } else {
-                gitAppDescribe = closestTag +'-'+ closestTagCount +'-'+ currentShortCommitHash;
+                gitAppDescribe = getAppVersion()+ '-'+ closestTagCount +'-'+ currentShortCommitHash;
             }
         }
         logger.debug("found gitAppDescribe: " + gitAppDescribe)
