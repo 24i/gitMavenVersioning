@@ -20,6 +20,7 @@ class VersionManagerPlugin implements Plugin<Project> {
         project.tasks.showVersion << {
             println "Version (project.version): " + project.version
             println "Branch (System.properties.gitBranch): " + System.properties.gitBranch;
+            println "Global commit count (System.properties.gitCommitCount): " + System.properties.gitCommitCount;
             println "Highest tag hash (System.properties.gitHighestTagHash): " + System.properties.gitHighestTagHash;
             println "Highest tag (System.properties.gitHighestTag): " + System.properties.gitHighestTag;
             println "Highest tag count (System.properties.gitHighestTagCount): " + System.properties.gitHighestTagCount;

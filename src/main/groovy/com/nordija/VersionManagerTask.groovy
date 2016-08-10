@@ -42,7 +42,7 @@ class VersionManagerTask extends DefaultTask {
         def stderr = new ByteArrayOutputStream()
         try {
             ExecResult result = this.project.exec({
-                it.commandLine 'git', 'rev-list', 'HEAD','--count'
+                it.commandLine 'git', 'rev-list', '--all','--count'
                 it.standardOutput = stdout
                 it.errorOutput = stderr
             });
@@ -379,7 +379,7 @@ class VersionManagerTask extends DefaultTask {
             if (branch.equals('master')) {
                 gitAppDescribe = getAppVersion()+ '-'+ currentShortCommitHash;
             } else {
-                gitAppDescribe = getAppVersion()+ '-'+ closestTagCount +'-'+ currentShortCommitHash;
+                gitAppDescribe = getAppVersion()+ '-'+ commitCount +'-'+ currentShortCommitHash;
             }
         }
         logger.debug("found gitAppDescribe: " + gitAppDescribe)
