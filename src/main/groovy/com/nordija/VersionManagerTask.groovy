@@ -24,13 +24,12 @@ class VersionManagerTask extends DefaultTask {
     def findGitVersions() {
         findBranch()
         findClosestTagHash()
-        findCommitCount();
         findGitClosestTag();
         findCurrentCommitHash();
         findCurrentCommitShortHash();
         findCountFromClosestTagHash();
+        findCommitCount();
         findMavenVersion();
-        findAppVersion();
         findGitDescribeVersion();
         findGitAppDescribeVersion();
         setVersions();
@@ -269,24 +268,27 @@ class VersionManagerTask extends DefaultTask {
                 def startIdx = 0;
                 def endIdx = 11;
                 if (gitBranch == null) {
-                    gitBranch = "UNKNOWN";
+                    gitBranch = "-UNKNOWN";
                 } else if (gitBranch.length() >= endIdx) {
                     if (gitBranch.startsWith("SPRINT-")) {
                         startIdx = 7;
                     }
-                    gitBranch = gitBranch.substring(startIdx, endIdx);
+                    gitBranch = "-" +gitBranch.substring(startIdx, endIdx);
+                } else if (gitBranch.equals("HEAD")){
+                    gitBranch = "";
                 } else {
-                    gitBranch = gitBranch.substring(startIdx, gitBranch.length());
+                    gitBranch = "-"+gitBranch.substring(startIdx, gitBranch.length());
                 }
                 minor = minor.toLong() + 1;
-                bugfix = "0-" + gitBranch + "-SNAPSHOT";
+                bugfix = "0" + gitBranch + "-SNAPSHOT";
             }
             def bugfixExtracted = '0';
             if (bugfix.indexOf('-')) {
                 bugfixExtracted = bugfix.substring(0,bugfix.indexOf('-'));
-            } else {
+            } else if (bugfix.isNumber()) {
                 bugfixExtracted = bugfix;
             }
+
             gitPaddedVersionCount = major +
                     String.format("%02d", minor.toLong()) +
                     String.format("%02d", bugfixExtracted.toLong()) +
@@ -304,61 +306,6 @@ class VersionManagerTask extends DefaultTask {
         logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
     }
 
-    void findAppVersion() {
-        def closestTag = closestTag;
-        def gitBranch = branch;
-        def versionSplit = /([0-9]+).([0-9]+).([0-9]+).*/;
-        def matcher = ( closestTag =~ versionSplit );
-        if (closestHighestTagHash.equals(currentCommitHash)) {
-            appVersion = closestTag;
-            snapshot = false;
-            if (isProjectDirty()) {
-                appVersion += '-dirty'
-            }
-        } else {
-            def major = matcher[0][1];
-            def minor = matcher[0][2];
-            def bugfix = matcher[0][3];
-
-            if (gitBranch.equals("master")) {
-                minor = minor.toLong() + 1;
-                bugfix = "0";
-            } else if (gitBranch.startsWith("bugfix")) {
-                bugfix = bugfix.toLong();
-            } else {
-                def startIdx = 0;
-                def endIdx = 11;
-                if (gitBranch == null) {
-                    gitBranch = "UNKNOWN";
-                } else if (gitBranch.length() >= endIdx) {
-                    if (gitBranch.startsWith("SPRINT-")) {
-                        startIdx = 7;
-                    }
-                    gitBranch = gitBranch.substring(startIdx, endIdx);
-                } else {
-                    gitBranch = gitBranch.substring(startIdx, gitBranch.length());
-                }
-                minor = minor.toLong() + 1;
-                bugfix = "0-" + gitBranch;
-            }
-            def bugfixExtracted = '0';
-            gitPaddedVersionCount = major +
-                    String.format("%02d", minor.toLong()) +
-                    String.format("%02d", bugfix.toLong()) +
-                    String.format("%04d", commitCount.toLong());
-            appVersion = (major +
-                    "." +
-                    minor +
-                    "." +
-                    bugfix);
-            if (isProjectDirty()) {
-                appVersion += '-dirty'
-            }
-        }
-        logger.debug("Found appVersion: " + appVersion)
-        logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
-    }
-
     void findGitDescribeVersion() {
         if (currentCommitHash.equals(closestHighestTagHash)) {
             gitDescribe = closestTag;
@@ -366,7 +313,7 @@ class VersionManagerTask extends DefaultTask {
             if (branch.equals('master')) {
                 gitDescribe = getMavenVersion()+ '-'+ currentShortCommitHash;
             } else {
-                gitDescribe = getMavenVersion()+ '-' + closestTagCount +'-'+ currentShortCommitHash;
+                gitDescribe = getMavenVersion()+ '-' + commitCount +'-'+ currentShortCommitHash;
             }
         }
         logger.debug("found gitDescribe: " + gitDescribe)
@@ -377,11 +324,12 @@ class VersionManagerTask extends DefaultTask {
             gitAppDescribe = closestTag;
         } else {
             if (branch.equals('master')) {
-                gitAppDescribe = getAppVersion()+ '-'+ currentShortCommitHash;
+                gitAppDescribe = gitDescribe.replaceAll('-SNAPSHOT','');
             } else {
-                gitAppDescribe = getAppVersion()+ '-'+ commitCount +'-'+ currentShortCommitHash;
+                gitAppDescribe = gitDescribe.replaceAll('-SNAPSHOT','');
             }
         }
+        appVersion = mavenVersion.replaceAll('-SNAPSHOT','');
         logger.debug("found gitAppDescribe: " + gitAppDescribe)
     }
 
