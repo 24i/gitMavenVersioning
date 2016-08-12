@@ -23,10 +23,10 @@ class VersionManagerTask extends DefaultTask {
     @TaskAction
     def findGitVersions() {
         findBranch()
-        findClosestTagHash()
-        findGitClosestTag();
         findCurrentCommitHash();
         findCurrentCommitShortHash();
+        findClosestTagHash()
+        findGitClosestTag();
         findCountFromClosestTagHash();
         findCommitCount();
         findMavenVersion();
@@ -167,6 +167,18 @@ class VersionManagerTask extends DefaultTask {
                         it.errorOutput = stderr;
                     });
                     this.closestHighestTagHash = stdout.toString().trim()
+                } else if (branch.equals("HEAD")) {
+                    closestHighestTagHash = currentCommitHash;
+                    findGitClosestTag();
+                    if (closestTag.contains('-')) {
+                        def tag = closestTag.substring(0,closestTag.indexOf('-'))
+                        ExecResult result = this.project.exec({
+                            it.commandLine 'git', 'rev-list', '-n', '1', tag
+                            it.standardOutput = stdout
+                            it.errorOutput = stderr;
+                        });
+                        this.closestHighestTagHash = stdout.toString().trim();
+                    }
                 } else {
                     ExecResult result = this.project.exec({
                         it.commandLine 'git', 'rev-list', '--tags', '--max-count=1'
