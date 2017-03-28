@@ -136,28 +136,14 @@ class VersionManagerTask extends DefaultTask {
             def stderr = new ByteArrayOutputStream()
             def stdout = new ByteArrayOutputStream()
             if (branch.equals('master')) {
+                def tag = findGitHighestTag()
                 ExecResult result = this.project.exec({
-                    it.commandLine 'git','rev-list', '--tags', '--max-count=10';
+                    it.commandLine 'git','log', '-1', '--format=format:%H', tag;
                     it.standardOutput = stdout;
                     it.errorOutput = stderr;
                 });
-                def outputString = stdout.toString().trim();
-                def hashes;
-                if (outputString.contains('\n')) {
-                    hashes = outputString.split('\n');
-                } else {
-                    hashes = [outputString];
-                }
-                def closestHighestTag = '0.0.0';
-                def localClosestHighestTag = '0';
-                for (String item : hashes) {
-                    def foundTag = getClosestTagForHash(item);
-                    if (compareVersions(foundTag, closestHighestTag) > 0) {
-                        closestHighestTag = getClosestTagForHash(item);
-                        localClosestHighestTag = item;
-                    }
-                }
-                this.closestHighestTagHash = localClosestHighestTag;
+                this.closestHighestTagHash = stdout.toString().trim();
+                this.closestTag = tag
             } else {
                 if (branch.startsWith("bugfix_")) {
                     String version = highestVersionNumber()
@@ -218,6 +204,33 @@ class VersionManagerTask extends DefaultTask {
             version = outputString
         }
         return version;
+    }
+
+    String findGitHighestTag () {
+        try {
+            def stderr = new ByteArrayOutputStream()
+            def stdout = new ByteArrayOutputStream()
+            ExecResult result = this.project.exec({
+                it.commandLine 'git','tag', '-l', '--sort=v:refname';
+                it.standardOutput = stdout;
+                it.errorOutput = stderr;
+            });
+            def outputString = stdout.toString().trim();
+            def hashes;
+            if (outputString.contains('\n')) {
+                hashes = outputString.split('\n');
+            } else {
+                hashes = [outputString];
+            }
+            def closestTag = '';
+            for (String item : hashes) {
+                closestTag = item
+            }
+            return closestTag
+        }
+        catch (ignored) {
+            return "0.0.0";
+        }
     }
 
     void findGitClosestTag () {
