@@ -224,7 +224,10 @@ class VersionManagerTask extends DefaultTask {
             }
             def closestTag = '';
             for (String item : hashes) {
-                closestTag = item
+                if (item.matches("[0-9.]*")) {
+                    closestTag = item
+                }
+
             }
             return closestTag
         }
