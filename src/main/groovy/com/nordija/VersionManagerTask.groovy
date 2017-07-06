@@ -166,12 +166,14 @@ class VersionManagerTask extends DefaultTask {
                         this.closestHighestTagHash = stdout.toString().trim();
                     }
                 } else {
+                    def tag = findGitHighestTag()
                     ExecResult result = this.project.exec({
-                        it.commandLine 'git', 'rev-list', '--tags', '--max-count=1'
-                        it.standardOutput = stdout
+                        it.commandLine 'git','log', '-1', '--format=format:%H', tag;
+                        it.standardOutput = stdout;
                         it.errorOutput = stderr;
                     });
-                    this.closestHighestTagHash = stdout.toString().trim()
+                    this.closestHighestTagHash = stdout.toString().trim();
+                    this.closestTag = tag
                 }
             }
         }
@@ -224,6 +226,7 @@ class VersionManagerTask extends DefaultTask {
             }
             def closestTag = '';
             for (String item : hashes) {
+                logger.info(item)
                 if (item.matches("[0-9.]*")) {
                     closestTag = item
                 }
