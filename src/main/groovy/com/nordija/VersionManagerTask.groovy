@@ -190,7 +190,7 @@ class VersionManagerTask extends DefaultTask {
 
         def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".");
         ExecResult result = this.project.exec({
-            it.commandLine 'git', 'tag', '-l', extractedVersion + '*'
+            it.commandLine 'git', 'tag', '-l', extractedVersion + '*', '--sort=v:refname'
             it.standardOutput = stdout
             it.errorOutput = stderr;
         });
