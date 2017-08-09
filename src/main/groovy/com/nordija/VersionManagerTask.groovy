@@ -281,6 +281,13 @@ class VersionManagerTask extends DefaultTask {
         def matcher = ( closestTag =~ versionSplit );
         if (closestHighestTagHash.equals(currentCommitHash)) {
             mavenVersion = closestTag;
+            def major = matcher[0][1];
+            def minor = matcher[0][2];
+            def bugfix = matcher[0][3];
+            gitPaddedVersionCount = major +
+                    String.format("%02d", minor.toLong()) +
+                    String.format("%02d", bugfix.toLong()) +
+                    String.format("%04d", commitCount.toLong());
             snapshot = false;
             if (isProjectDirty()) {
                 mavenVersion += '-dirty'
