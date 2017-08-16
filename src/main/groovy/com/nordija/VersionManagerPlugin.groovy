@@ -21,6 +21,7 @@ class VersionManagerPlugin implements Plugin<Project> {
             doLast {
                 println "Version (project.version): " + project.version
                 println "Branch (System.properties.gitBranch): " + System.properties.gitBranch;
+                println "Parent Branch (System.properties.gitParentBranch): " + System.properties.gitParentBranch;
                 println "Global commit count (System.properties.gitCommitCount): " + System.properties.gitCommitCount;
                 println "Highest tag hash (System.properties.gitHighestTagHash): " + System.properties.gitHighestTagHash;
                 println "Highest tag (System.properties.gitHighestTag): " + System.properties.gitHighestTag;
