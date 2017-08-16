@@ -5,8 +5,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecResult
 
 class VersionManagerTask extends DefaultTask {
-    String greeting = 'hello from GreetingTask'
     String branch = "";
+    String parentBranch = "";
     String closestHighestTagHash;
     String closestTag;
     String closestTagCount;
@@ -25,6 +25,7 @@ class VersionManagerTask extends DefaultTask {
         findBranch()
         findCurrentCommitHash();
         findCurrentCommitShortHash();
+        findParentBranch()
         findClosestTagHash()
         findGitClosestTag();
         findCountFromClosestTagHash();
@@ -33,6 +34,66 @@ class VersionManagerTask extends DefaultTask {
         findGitDescribeVersion();
         findGitAppDescribeVersion();
         setVersions();
+    }
+
+    void findParentBranch() {
+        if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
+            def hash = parentBranchCommitHash()
+            if (hash != null && !hash.isEmpty()) {
+                def stderr = new ByteArrayOutputStream()
+                def stdout = new ByteArrayOutputStream()
+
+                ExecResult result = this.project.exec({
+                    it.commandLine 'git', 'branch', '--contains', hash
+                    it.standardOutput = stdout
+                    it.errorOutput = stderr;
+                })
+                def outputString = stdout.toString().trim()
+                def hashes = outputString;
+                if (outputString.contains('\n')) {
+                    hashes = outputString.split('\n');
+                    def branchFound = ''
+                    for (final String item : hashes) {
+                        if (item.startsWith("*")) {
+                            branchFound = item.substring(1);
+                        }
+                        branchFound = branchFound.trim()
+                        if (branchFound.startsWith('bugfix_') || branchFound.equals('master')) {
+                            parentBranch = branchFound
+                            return
+                        }
+                    }
+                } else {
+                    if (hashes.startsWith('*')) {
+                        parentBranch = hashes.substring(1).trim()
+                    }
+                    parentBranch = outputString.trim()
+                }
+            }
+        }
+    }
+
+    private String parentBranchCommitHash() {
+        def stderr = new ByteArrayOutputStream()
+        def stdout = new ByteArrayOutputStream()
+
+        ExecResult result = this.project.exec({
+            it.commandLine 'git', 'log', branch, '--not', 'master', '--pretty=format:%P'
+            it.standardOutput = stdout
+            it.errorOutput = stderr;
+        });
+        def outputString = stdout.toString().trim();
+        def hashes;
+        def version = '';
+        if (outputString.contains('\n')) {
+            hashes = outputString.split('\n');
+            for (String item : hashes) {
+                version = item;
+            }
+        } else {
+            version = outputString
+        }
+        return version;
     }
 
 
@@ -55,6 +116,7 @@ class VersionManagerTask extends DefaultTask {
 
     void setVersions() {
         System.setProperty("gitBranch",branch);
+        System.setProperty("gitParentBranch",parentBranch);
         System.setProperty("gitHighestTagHash",closestHighestTagHash);
         System.setProperty("gitHighestTag",closestTag);
         System.setProperty("gitHighestTagCount",closestTagCount);
@@ -127,6 +189,7 @@ class VersionManagerTask extends DefaultTask {
         } catch (ignored) {
             branch = "error";
         }
+        parentBranch = branch
         logger.debug("Found branch: " + branch)
 
     }
