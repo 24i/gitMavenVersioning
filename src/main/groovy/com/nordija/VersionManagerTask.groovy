@@ -22,6 +22,7 @@ class VersionManagerTask extends DefaultTask {
 
     @TaskAction
     def findGitVersions() {
+        fetch()
         findBranch()
         findParentBranch()
         findCurrentCommitHash();
@@ -36,13 +37,27 @@ class VersionManagerTask extends DefaultTask {
         setVersions();
     }
 
-    void findParentBranch() {
+    private void fetch() {
+        try {
+            def stderr = new ByteArrayOutputStream()
+            def stdout = new ByteArrayOutputStream()
+            ExecResult result = this.project.exec({
+                it.commandLine 'git', 'fetch'
+                it.standardOutput = stdout
+                it.errorOutput = stderr;
+            })
+        } catch (Exception e) {
+            println("Fetch failed: " + e.getMessage())
+        }
+    }
+
+    private void findParentBranch() {
         if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
             def foundHash = parentBranchCommitHash()
             if (foundHash != null && !foundHash.isEmpty()) {
-                def hashes = hash.split(' ')
+                def hashes = foundHash.split(' ')
                 def parentBranchFound = ''
-                for (String hash  : hashes) {
+                for (String hash : hashes) {
                     String foundBranch = findLowestBranchForHash(hash)
                     if (foundBranch != null && !foundBranch.isEmpty() && !parentBranchFound.equals(foundBranch)) {
                         if (foundBranch.startsWith('bugfix')) {
@@ -83,12 +98,12 @@ class VersionManagerTask extends DefaultTask {
         return ''
     }
 
-    private String findLowestBranchForHash(String s) {
+    private String findLowestBranchForHash(String hash) {
         def stderr = new ByteArrayOutputStream()
         def stdout = new ByteArrayOutputStream()
 
         ExecResult result = this.project.exec({
-            it.commandLine 'git', 'branch', '--contains', hash
+            it.commandLine 'git', 'branch', '-r', '--contains', hash
             it.standardOutput = stdout
             it.errorOutput = stderr;
         })
@@ -99,7 +114,7 @@ class VersionManagerTask extends DefaultTask {
             def branchFound = ''
             for (final String item : branches) {
                 if (item.startsWith("*")) {
-                    branchFound = item.substring(1);
+                    branchFound = item.replaceAll('origin/','').substring(1);
                 } else {
                     branchFound = item
                 }
@@ -110,9 +125,9 @@ class VersionManagerTask extends DefaultTask {
             }
         } else {
             if (branches.startsWith('*')) {
-                return branches.substring(1).trim()
+                return branches.replaceAll('origin/','').substring(1).trim()
             }
-            return outputString.trim()
+            return outputString.replaceAll('origin/','').trim()
         }
         return '';
     }
@@ -122,7 +137,7 @@ class VersionManagerTask extends DefaultTask {
         def stdout = new ByteArrayOutputStream()
 
         ExecResult result = this.project.exec({
-            it.commandLine 'git', 'log', branch, '--not', 'master', '--pretty=format:%P'
+            it.commandLine 'git', 'log', branch, '--not', 'origin/master', '--pretty=format:%P'
             it.standardOutput = stdout
             it.errorOutput = stderr;
         });
@@ -172,7 +187,6 @@ class VersionManagerTask extends DefaultTask {
         System.setProperty("gitDescribe",gitDescribe);
         System.setProperty("gitAppDescribe",gitAppDescribe);
         if (gitPaddedVersionCount != null) {
-            println gitPaddedVersionCount
             System.setProperty("gitPaddedVersionCount", gitPaddedVersionCount);
         }
 
