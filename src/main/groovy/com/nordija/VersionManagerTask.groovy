@@ -61,10 +61,11 @@ class VersionManagerTask extends DefaultTask {
                     String foundBranch = findLowestBranchForHash(hash)
                     if (foundBranch != null && !foundBranch.isEmpty() && !parentBranchFound.equals(foundBranch)) {
                         if (foundBranch.startsWith('bugfix')) {
-                            foundBranch = findLowestBranch(foundBranch,parentBranchFound);
+                            parentBranchFound = findLowestBranch(foundBranch,parentBranchFound)
                         }
                     }
                 }
+                parentBranch = parentBranchFound
             }
         }
     }
@@ -114,11 +115,11 @@ class VersionManagerTask extends DefaultTask {
             def branchFound = ''
             for (final String item : branches) {
                 if (item.startsWith("*")) {
-                    branchFound = item.replaceAll('origin/','').substring(1);
+                    branchFound = item.substring(1);
                 } else {
                     branchFound = item
                 }
-                branchFound = branchFound.trim()
+                branchFound = branchFound.trim().replaceAll('origin\\/','')
                 if (branchFound.startsWith('bugfix_') || branchFound.equals('master')) {
                     return branchFound
                 }
