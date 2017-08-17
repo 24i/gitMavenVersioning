@@ -38,44 +38,83 @@ class VersionManagerTask extends DefaultTask {
 
     void findParentBranch() {
         if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
-            println('Not master or bugfix')
-            def hash = parentBranchCommitHash()
-            println('hash: ' + hash)
-            if (hash != null && !hash.isEmpty()) {
-                def stderr = new ByteArrayOutputStream()
-                def stdout = new ByteArrayOutputStream()
-
-                ExecResult result = this.project.exec({
-                    it.commandLine 'git', 'branch', '--contains', hash
-                    it.standardOutput = stdout
-                    it.errorOutput = stderr;
-                })
-                def outputString = stdout.toString().trim()
-                def hashes = outputString;
-                if (outputString.contains('\n')) {
-                    hashes = outputString.split('\n');
-                    def branchFound = ''
-                    for (final String item : hashes) {
-                        if (item.startsWith("*")) {
-                            branchFound = item.substring(1);
-                        } else {
-                            branchFound = item
-                        }
-                        branchFound = branchFound.trim()
-                        println(branchFound)
-                        if (branchFound.startsWith('bugfix_') || branchFound.equals('master')) {
-                            parentBranch = branchFound
-                            return
+            def foundHash = parentBranchCommitHash()
+            if (foundHash != null && !foundHash.isEmpty()) {
+                def hashes = hash.split(' ')
+                def parentBranchFound = ''
+                for (String hash  : hashes) {
+                    String foundBranch = findLowestBranchForHash(hash)
+                    if (foundBranch != null && !foundBranch.isEmpty() && !parentBranchFound.equals(foundBranch)) {
+                        if (foundBranch.startsWith('bugfix')) {
+                            foundBranch = findLowestBranch(foundBranch,parentBranchFound);
                         }
                     }
-                } else {
-                    if (hashes.startsWith('*')) {
-                        parentBranch = hashes.substring(1).trim()
-                    }
-                    parentBranch = outputString.trim()
                 }
             }
         }
+    }
+
+    private String findLowestBranch(String branchA, String branchB) {
+        if (branchA.equals('')) {
+            return branchB
+        }
+        if (branchB.equals('')) {
+            return branchA
+        }
+        if (branchA.startsWith('bugfix') && branchB.startsWith('bugfix')) {
+            int compare = branchA.compareTo(branchB)
+            if (comare < 0 || compare == 0) {
+                return branchA
+            }
+            else {
+                return branchB
+            }
+        } else if (branchA.startsWith('bugfix')) {
+            return branchA
+        } else if (branchB.startsWith('bugfix')) {
+            return branchB
+        }
+        if (branchA.equals('master')) {
+            return branchA
+        }
+        if (branchB.equals('master')) {
+            return branchB
+        }
+        return ''
+    }
+
+    private String findLowestBranchForHash(String s) {
+        def stderr = new ByteArrayOutputStream()
+        def stdout = new ByteArrayOutputStream()
+
+        ExecResult result = this.project.exec({
+            it.commandLine 'git', 'branch', '--contains', hash
+            it.standardOutput = stdout
+            it.errorOutput = stderr;
+        })
+        def outputString = stdout.toString().trim()
+        def branches = outputString;
+        if (outputString.contains('\n')) {
+            branches = outputString.split('\n');
+            def branchFound = ''
+            for (final String item : branches) {
+                if (item.startsWith("*")) {
+                    branchFound = item.substring(1);
+                } else {
+                    branchFound = item
+                }
+                branchFound = branchFound.trim()
+                if (branchFound.startsWith('bugfix_') || branchFound.equals('master')) {
+                    return branchFound
+                }
+            }
+        } else {
+            if (branches.startsWith('*')) {
+                return branches.substring(1).trim()
+            }
+            return outputString.trim()
+        }
+        return '';
     }
 
     private String parentBranchCommitHash() {
