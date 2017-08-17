@@ -62,6 +62,8 @@ class VersionManagerTask extends DefaultTask {
                     if (foundBranch != null && !foundBranch.isEmpty() && !parentBranchFound.equals(foundBranch)) {
                         if (foundBranch.startsWith('bugfix')) {
                             parentBranchFound = findLowestBranch(foundBranch,parentBranchFound)
+                        } else if (!parentBranchFound.startsWith('bugfix') && foundBranch.equals('master')) {
+                            parentBranchFound = foundBranch
                         }
                     }
                 }
