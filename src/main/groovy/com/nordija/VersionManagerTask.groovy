@@ -23,9 +23,9 @@ class VersionManagerTask extends DefaultTask {
     @TaskAction
     def findGitVersions() {
         findBranch()
+        findParentBranch()
         findCurrentCommitHash();
         findCurrentCommitShortHash();
-        findParentBranch()
         findClosestTagHash()
         findGitClosestTag();
         findCountFromClosestTagHash();
@@ -38,7 +38,9 @@ class VersionManagerTask extends DefaultTask {
 
     void findParentBranch() {
         if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
+            println('Not master or bugfix')
             def hash = parentBranchCommitHash()
+            println('hash: ' + hash)
             if (hash != null && !hash.isEmpty()) {
                 def stderr = new ByteArrayOutputStream()
                 def stdout = new ByteArrayOutputStream()
@@ -56,8 +58,11 @@ class VersionManagerTask extends DefaultTask {
                     for (final String item : hashes) {
                         if (item.startsWith("*")) {
                             branchFound = item.substring(1);
+                        } else {
+                            branchFound = item
                         }
                         branchFound = branchFound.trim()
+                        println(branchFound)
                         if (branchFound.startsWith('bugfix_') || branchFound.equals('master')) {
                             parentBranch = branchFound
                             return
@@ -198,7 +203,11 @@ class VersionManagerTask extends DefaultTask {
         try {
             def stderr = new ByteArrayOutputStream()
             def stdout = new ByteArrayOutputStream()
-            if (branch.equals('master')) {
+            def branchToFindTag = branch
+            if (!parentBranch.equals(branch)) {
+                branchToFindTag = parentBranch
+            }
+            if (branchToFindTag.equals('master')) {
                 def tag = findGitHighestTag()
                 ExecResult result = this.project.exec({
                     it.commandLine 'git','log', '-1', '--format=format:%H', tag;
@@ -208,15 +217,15 @@ class VersionManagerTask extends DefaultTask {
                 this.closestHighestTagHash = stdout.toString().trim();
                 this.closestTag = tag
             } else {
-                if (branch.startsWith("bugfix_")) {
-                    String version = highestVersionNumber()
+                if (branchToFindTag.startsWith("bugfix_")) {
+                    String version = highestVersionNumber(branchToFindTag)
                     ExecResult result = this.project.exec({
                         it.commandLine 'git', 'rev-list', '-n', '1', version
                         it.standardOutput = stdout
                         it.errorOutput = stderr;
                     });
                     this.closestHighestTagHash = stdout.toString().trim()
-                } else if (branch.equals("HEAD")) {
+                } else if (branchToFindTag.equals("HEAD")) {
                     closestHighestTagHash = currentCommitHash;
                     findGitClosestTag();
                     if (closestTag.contains('-')) {
@@ -247,7 +256,7 @@ class VersionManagerTask extends DefaultTask {
 
     }
 
-    private String highestVersionNumber() {
+    private String highestVersionNumber(String branch) {
         def stderr = new ByteArrayOutputStream()
         def stdout = new ByteArrayOutputStream()
 
