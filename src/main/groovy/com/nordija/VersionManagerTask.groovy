@@ -368,7 +368,10 @@ class VersionManagerTask extends DefaultTask {
             def major = matcher[0][1];
             def minor = matcher[0][2];
             def bugfix = matcher[0][3];
-
+            def branchToFindVersion = branch
+            if (!parentBranch.equals(branch)) {
+                branchToFindVersion = parentBranch
+            }
             if (gitBranch.equals("master")) {
                 minor = minor.toLong() + 1;
                 bugfix = "0-SNAPSHOT";
@@ -383,14 +386,18 @@ class VersionManagerTask extends DefaultTask {
                     if (gitBranch.startsWith("SPRINT-")) {
                         startIdx = 7;
                     }
-                    gitBranch = "-" +gitBranch.substring(startIdx, endIdx);
-                } else if (gitBranch.equals("HEAD")){
+                    gitBranch = "-" + gitBranch.substring(startIdx, endIdx);
+                } else if (gitBranch.equals("HEAD")) {
                     gitBranch = "";
                 } else {
-                    gitBranch = "-"+gitBranch.substring(startIdx, gitBranch.length());
+                    gitBranch = "-" + gitBranch.substring(startIdx, gitBranch.length());
                 }
-                minor = minor.toLong() + 1;
-                bugfix = "0" + gitBranch + "-SNAPSHOT";
+                if (!parentBranch.equals(branch) && parentBranch.startsWith('bugfix')) {
+                    bugfix = (bugfix.toLong() + 1) +gitBranch + "-SNAPSHOT"
+                } else {
+                    minor = minor.toLong() + 1;
+                    bugfix = "0" + gitBranch + "-SNAPSHOT";
+                }
             }
             def bugfixExtracted = '0';
             if (bugfix.indexOf('-')) {
