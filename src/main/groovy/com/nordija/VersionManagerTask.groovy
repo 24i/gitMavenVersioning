@@ -47,7 +47,6 @@ class VersionManagerTask extends DefaultTask {
                 it.errorOutput = stderr;
             })
         } catch (Exception e) {
-            println("Fetch failed: " + e.getMessage())
         }
     }
 
