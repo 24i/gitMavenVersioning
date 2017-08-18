@@ -24,17 +24,17 @@ class VersionManagerTask extends DefaultTask {
     def findGitVersions() {
 //        fetch()
         findBranch()
+        findCurrentCommitHash()
         findParentBranch()
-        findCurrentCommitHash();
-        findCurrentCommitShortHash();
+        findCurrentCommitShortHash()
         findClosestTagHash()
-        findGitClosestTag();
-        findCountFromClosestTagHash();
-        findCommitCount();
-        findMavenVersion();
-        findGitDescribeVersion();
-        findGitAppDescribeVersion();
-        setVersions();
+        findGitClosestTag()
+        findCountFromClosestTagHash()
+        findCommitCount()
+        findMavenVersion()
+        findGitDescribeVersion()
+        findGitAppDescribeVersion()
+        setVersions()
     }
 
     private void fetch() {
@@ -53,6 +53,9 @@ class VersionManagerTask extends DefaultTask {
     private void findParentBranch() {
         if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
             def foundHash = parentBranchCommitHash()
+            if (foundHash == null || foundHash.isEmpty()) {
+                foundHash = currentCommitHash
+            }
             if (foundHash != null && !foundHash.isEmpty()) {
                 def hashes = foundHash.split(' ')
                 def parentBranchFound = ''
