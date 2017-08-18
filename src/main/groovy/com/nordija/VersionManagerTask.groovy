@@ -22,7 +22,7 @@ class VersionManagerTask extends DefaultTask {
 
     @TaskAction
     def findGitVersions() {
-        fetch()
+//        fetch()
         findBranch()
         findParentBranch()
         findCurrentCommitHash();
