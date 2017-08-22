@@ -108,7 +108,11 @@ class VersionManagerTask extends DefaultTask {
         def stdout = new ByteArrayOutputStream()
 
         ExecResult result = this.project.exec({
-            it.commandLine 'git', 'branch', '-r', '--contains', hash
+            if (Boolean.valueOf(System.getProperty('CI','false'))) {
+                it.commandLine 'git', 'branch', '--contains', hash
+            } else {
+                it.commandLine 'git', 'branch', '-r', '--contains', hash
+            }
             it.standardOutput = stdout
             it.errorOutput = stderr;
         })
@@ -142,7 +146,11 @@ class VersionManagerTask extends DefaultTask {
         def stdout = new ByteArrayOutputStream()
 
         ExecResult result = this.project.exec({
-            it.commandLine 'git', 'log', branch, '--not', 'origin/master', '--pretty=format:%P'
+            if (Boolean.valueOf(System.getProperty('CI','false'))) {
+                it.commandLine 'git', 'log', branch, '--not', 'master', '--pretty=format:%P'
+            } else {
+                it.commandLine 'git', 'log', branch, '--not', 'origin/master', '--pretty=format:%P'
+            }
             it.standardOutput = stdout
             it.errorOutput = stderr;
         });
