@@ -487,6 +487,9 @@ class VersionManagerTask extends DefaultTask {
                 mavenVersion += '-dirty'
             }
         }
+        if (mavenVersion.equals(closestTag) && branch.equals('HEAD')) {
+            branch = mavenVersion
+        }
         logger.debug("Found mavenVersion: " + mavenVersion)
         logger.debug("Found gitPaddedVersionCount: " + gitPaddedVersionCount)
     }
