@@ -39,21 +39,27 @@ class VersionManagerTask extends DefaultTask {
         setVersions()
     }
 
-    private void fetch() {
+    private String execGitCommand(Object... commands) {
         try {
             def stderr = new ByteArrayOutputStream()
             def stdout = new ByteArrayOutputStream()
             ExecResult result = this.project.exec({
-                it.commandLine 'git', 'fetch'
+//                it.ignoreExitValue = true
+                it.commandLine = commands
                 it.standardOutput = stdout
                 it.errorOutput = stderr;
             })
         } catch (Exception e) {
+            return null;
         }
     }
 
+    private void fetch() {
+        execGitCommand('git', 'fetch')
+    }
+
     private void findParentBranch() {
-        if (!branch.equals('master') && !branch.startsWith("bugfix_")) {
+        if (branch != null && !branch.equals('master') && !branch.startsWith("bugfix_")) {
             def foundHash = parentBranchCommitHash()
             if (foundHash == null || foundHash.isEmpty()) {
                 foundHash = currentCommitHash
@@ -108,17 +114,12 @@ class VersionManagerTask extends DefaultTask {
     private String findLowestBranchForHash(String hash) {
         def stderr = new ByteArrayOutputStream()
         def stdout = new ByteArrayOutputStream()
-
-        ExecResult result = this.project.exec({
-            if (project.hasProperty('CI') && Boolean.valueOf(project.properties['CI'])) {
-                it.commandLine 'git', 'branch', '--contains', hash
-            } else {
-                it.commandLine 'git', 'branch', '-r', '--contains', hash
-            }
-            it.standardOutput = stdout
-            it.errorOutput = stderr;
-        })
-        def outputString = stdout.toString().trim()
+        String outputString;
+        if (project.hasProperty('CI') && Boolean.valueOf(project.properties['CI'])) {
+            outputString = execGitCommand('git', 'branch', '--contains', hash)
+        } else {
+            outputString = execGitCommand('git', 'branch', '-r', '--contains', hash)
+        }
         def branches = outputString;
         if (outputString.contains('\n')) {
             branches = outputString.split('\n');
@@ -147,16 +148,12 @@ class VersionManagerTask extends DefaultTask {
         def stderr = new ByteArrayOutputStream()
         def stdout = new ByteArrayOutputStream()
 
-        ExecResult result = this.project.exec({
-            if (project.hasProperty('CI') && Boolean.valueOf(project.properties['CI'])) {
-                it.commandLine 'git', 'log', branch, '--not', 'master', '--pretty=format:%P'
-            } else {
-                it.commandLine 'git', 'log', branch, '--not', 'origin/master', '--pretty=format:%P'
-            }
-            it.standardOutput = stdout
-            it.errorOutput = stderr;
-        });
-        def outputString = stdout.toString().trim();
+        def outputString;
+        if (project.hasProperty('CI') && Boolean.valueOf(project.properties['CI'])) {
+            outputString = execGitCommand( 'git', 'log', branch, '--not', 'master', '--pretty=format:%P')
+        } else {
+            outputString = execGitCommand( 'git', 'log', branch, '--not', 'origin/master', '--pretty=format:%P')
+        }
         def hashes;
         def version = '';
         if (outputString.contains('\n')) {
@@ -172,24 +169,18 @@ class VersionManagerTask extends DefaultTask {
 
 
     void findCommitCount() {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        try {
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'rev-list', '--all','--count'
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            commitCount =  stdout.toString().trim()
-        }
-        catch (ignored) {
-            commitCount = "0";
+        commitCount = execGitCommand('git', 'rev-list', '--all','--count')
+        if (commitCount == null || commitCount.isEmpty()) {
+            commitCount = "0"
         }
         logger.debug("Found commit count: " + commitCount)
     }
 
     void setVersions() {
         System.setProperty("gitBranch",branch);
+        if (parentBranch == null) {
+            parentBranch = 'N/A'
+        }
         System.setProperty("gitParentBranch",parentBranch);
         System.setProperty("gitHighestTagHash",closestHighestTagHash);
         System.setProperty("gitHighestTag",closestTag);
@@ -214,34 +205,16 @@ class VersionManagerTask extends DefaultTask {
     }
 
     void findCurrentCommitShortHash() {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        try {
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'rev-parse', '--short','HEAD'
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            currentShortCommitHash =  stdout.toString().trim()
-        }
-        catch (ignored) {
-            currentShortCommitHash = "0";
+        currentShortCommitHash = execGitCommand('git', 'rev-parse', '--short','HEAD')
+        if (currentShortCommitHash == null || currentShortCommitHash.isEmpty()) {
+            currentShortCommitHash = "0"
         }
         logger.debug("Found currentShortCommitHash: " + currentShortCommitHash)
     }
 
     void findCurrentCommitHash() {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            def stderr = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'rev-parse', 'HEAD'
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            currentCommitHash = stdout.toString().trim()
-        }
-        catch (ignored) {
+        currentCommitHash = execGitCommand('git', 'rev-parse', 'HEAD')
+        if (currentCommitHash == null || currentCommitHash.isEmpty()) {
             currentCommitHash = "NoHashFound";
         }
         logger.debug("Found currentCommitHash: " + currentCommitHash)
@@ -249,92 +222,49 @@ class VersionManagerTask extends DefaultTask {
 
 
     void findBranch() {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        try {
-            ExecResult result = this.project.exec({
-                it.executable = 'git'
-                it.args = ['rev-parse', '--abbrev-ref', 'HEAD']
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            branch = stdout.toString().trim();
-        } catch (ignored) {
-            branch = "error";
-        }
+        branch = execGitCommand('git','rev-parse', '--abbrev-ref', 'HEAD')
         parentBranch = branch
         logger.debug("Found branch: " + branch)
 
     }
 
     void findClosestTagHash() {
-        try {
-            def stderr = new ByteArrayOutputStream()
-            def stdout = new ByteArrayOutputStream()
             def branchToFindTag = branch
             if (!parentBranch.equals(branch)) {
                 branchToFindTag = parentBranch
             }
             if (branchToFindTag.equals('master')) {
                 def tag = findGitHighestTag()
-                ExecResult result = this.project.exec({
-                    it.commandLine 'git','log', '-1', '--format=format:%H', tag;
-                    it.standardOutput = stdout;
-                    it.errorOutput = stderr;
-                });
-                this.closestHighestTagHash = stdout.toString().trim();
+                closestHighestTagHash = execGitCommand('git','log', '-1', '--format=format:%H', tag)
                 this.closestTag = tag
-            } else {
+            } else if (branchToFindTag != null) {
                 if (branchToFindTag.startsWith("bugfix_")) {
                     String version = highestVersionNumber(branchToFindTag)
-                    ExecResult result = this.project.exec({
-                        it.commandLine 'git', 'rev-list', '-n', '1', version
-                        it.standardOutput = stdout
-                        it.errorOutput = stderr;
-                    });
-                    this.closestHighestTagHash = stdout.toString().trim()
+                    this.closestHighestTagHash = execGitCommand('git', 'rev-list', '-n', '1', version)
                 } else if (branchToFindTag.equals("HEAD")) {
                     closestHighestTagHash = currentCommitHash;
                     findGitClosestTag();
                     if (closestTag.contains('-')) {
                         def tag = closestTag.substring(0,closestTag.indexOf('-'))
-                        ExecResult result = this.project.exec({
-                            it.commandLine 'git', 'rev-list', '-n', '1', tag
-                            it.standardOutput = stdout
-                            it.errorOutput = stderr;
-                        });
-                        this.closestHighestTagHash = stdout.toString().trim();
+                        this.closestHighestTagHash = execGitCommand('git', 'rev-list', '-n', '1', tag)
                     }
                 } else {
                     def tag = findGitHighestTag()
-                    ExecResult result = this.project.exec({
-                        it.commandLine 'git','log', '-1', '--format=format:%H', tag;
-                        it.standardOutput = stdout;
-                        it.errorOutput = stderr;
-                    });
-                    this.closestHighestTagHash = stdout.toString().trim();
+                    this.closestHighestTagHash = execGitCommand('git','log', '-1', '--format=format:%H', tag)
                     this.closestTag = tag
                 }
             }
-        }
-        catch (ignored) {
-            this.closestHighestTagHash = "0";
+        if (closestHighestTagHash == null || closestHighestTagHash.empty) {
+            this.closestHighestTagHash = "0"
         }
         logger.debug("Found closestHighestTagHash: " + closestHighestTagHash)
 
     }
 
     private String highestVersionNumber(String branch) {
-        def stderr = new ByteArrayOutputStream()
-        def stdout = new ByteArrayOutputStream()
 
         def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".");
-        ExecResult result = this.project.exec({
-            it.commandLine 'git', 'tag', '-l', extractedVersion + '*', '--sort=v:refname'
-            it.standardOutput = stdout
-            it.errorOutput = stderr;
-        });
-        def outputString = stdout.toString().trim();
+        def outputString = execGitCommand('git', 'tag', '-l', extractedVersion + '*', '--sort=v:refname')
         def hashes;
         def version = '0.0.0';
         if (outputString.contains('\n')) {
@@ -349,65 +279,40 @@ class VersionManagerTask extends DefaultTask {
     }
 
     String findGitHighestTag () {
-        try {
-            def stderr = new ByteArrayOutputStream()
-            def stdout = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git','tag', '-l', '--sort=v:refname';
-                it.standardOutput = stdout;
-                it.errorOutput = stderr;
-            });
-            def outputString = stdout.toString().trim();
-            def hashes;
-            if (outputString.contains('\n')) {
-                hashes = outputString.split('\n');
-            } else {
-                hashes = [outputString];
+        def outputString = execGitCommand('git','tag', '-l', '--sort=v:refname')
+        if (outputString == null || outputString.empty) {
+            println "Testing gitHighestTag" + outputString
+            logger.info("Testing gitHighestTag" + outputString)
+            return "0.0.0"
+        }
+        def hashes;
+        if (outputString.contains('\n')) {
+            hashes = outputString.split('\n');
+        } else {
+            hashes = [outputString];
+        }
+        def closestTag = '';
+        for (String item : hashes) {
+            logger.info(item)
+            if (item.matches("[0-9.]*")) {
+                closestTag = item
             }
-            def closestTag = '';
-            for (String item : hashes) {
-                logger.info(item)
-                if (item.matches("[0-9.]*")) {
-                    closestTag = item
-                }
 
-            }
-            return closestTag
         }
-        catch (ignored) {
-            return "0.0.0";
-        }
+        return closestTag
     }
 
     void findGitClosestTag () {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            def stderr = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'describe', '--tags', closestHighestTagHash
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            closestTag = stdout.toString().trim()
-        }
-        catch (ignored) {
+        closestTag = execGitCommand('git', 'describe', '--tags', closestHighestTagHash)
+        if (closestTag == null || closestTag.empty) {
             closestTag = "0.0.0";
         }
         logger.debug("Found ClosestTag: " + closestTag)
     }
 
     void findCountFromClosestTagHash()  {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            def stderr = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'rev-list', closestHighestTagHash+'..', '--count'
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-            });
-            closestTagCount = stdout.toString().trim()
-        }
-        catch (ignored) {
+        closestTagCount = execGitCommand('git', 'rev-list', closestHighestTagHash+'..', '--count')
+        if (closestTagCount == null || closestTagCount.empty) {
             closestTagCount =  "0";
         }
         logger.debug("Found tagCount: " + closestTagCount)
@@ -439,6 +344,11 @@ class VersionManagerTask extends DefaultTask {
             def branchToFindVersion = branch
             if (!parentBranch.equals(branch)) {
                 branchToFindVersion = parentBranch
+            }
+            if (gitBranch == null) {
+                mavenVersion = '0.0.0-SNAPSHOT'
+                branch = 'unknown'
+                return
             }
             if (gitBranch.equals("master")) {
                 minor = minor.toLong() + 1;
@@ -523,39 +433,20 @@ class VersionManagerTask extends DefaultTask {
 
 
     String getClosestTagForHash( hash ) {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            def stderr = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'describe', '--tags', hash;
-                it.standardOutput = stdout;
-                it.errorOutput = stderr
-            });
-            def returnValue = stdout.toString().trim();
-            logger.debug('ClosestTagForHash: ' + hash + ' tag: ' + returnValue)
-            return returnValue;
-        } catch (ignored) {
-            return "0.0.0";
+        def returnValue = execGitCommand('git', 'describe', '--tags', hash)
+        if (returnValue == null || returnValue.empty) {
+            return "0.0.0"
         }
+        logger.debug('ClosestTagForHash: ' + hash + ' tag: ' + returnValue)
+        return returnValue;
     }
 
     boolean isProjectDirty() {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            def stderr = new ByteArrayOutputStream()
-            ExecResult result = this.project.exec({
-                it.commandLine 'git', 'status', '--porcelain';
-                it.standardOutput = stdout;
-                it.errorOutput = stderr
-            });
-            def resultValue = stdout.toString().trim();
-            if (resultValue.length() > 2) {
-                return resultValue.split("\n").size() > 0
-            } else {
-                return false;
-            }
-        } catch (ignored) {
-            return false;
+        def resultValue = execGitCommand('git', 'status', '--porcelain')
+        if (resultValue != null && resultValue.length() > 2) {
+            return resultValue.split("\n").size() > 0
+        } else {
+            return false
         }
     }
 

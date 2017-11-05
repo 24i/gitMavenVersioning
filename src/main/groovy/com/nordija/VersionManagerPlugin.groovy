@@ -19,6 +19,7 @@ class VersionManagerPlugin implements Plugin<Project> {
         }
         project.tasks.showVersion  {
             doLast {
+                project.tasks.version.execute();
                 println "Version (project.version): " + project.version
                 println "Branch (System.properties.gitBranch): " + System.properties.gitBranch;
                 println "Parent Branch (System.properties.gitParentBranch): " + System.properties.gitParentBranch;
