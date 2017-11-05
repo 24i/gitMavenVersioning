@@ -22,7 +22,7 @@ class VersionManagerTask extends DefaultTask {
 
     @TaskAction
     def findGitVersions() {
-//        fetch()
+        fetch()
         findBranch()
         findCurrentCommitHash()
         if (!branch.equals('HEAD')) {
@@ -44,11 +44,11 @@ class VersionManagerTask extends DefaultTask {
             def stderr = new ByteArrayOutputStream()
             def stdout = new ByteArrayOutputStream()
             ExecResult result = this.project.exec({
-//                it.ignoreExitValue = true
                 it.commandLine = commands
                 it.standardOutput = stdout
                 it.errorOutput = stderr;
             })
+            return stdout.toString().trim()
         } catch (Exception e) {
             return null;
         }
@@ -120,6 +120,9 @@ class VersionManagerTask extends DefaultTask {
         } else {
             outputString = execGitCommand('git', 'branch', '-r', '--contains', hash)
         }
+        if (outputString == null) {
+            return ''
+        }
         def branches = outputString;
         if (outputString.contains('\n')) {
             branches = outputString.split('\n');
@@ -156,12 +159,12 @@ class VersionManagerTask extends DefaultTask {
         }
         def hashes;
         def version = '';
-        if (outputString.contains('\n')) {
+        if (outputString != null && outputString.contains('\n')) {
             hashes = outputString.split('\n');
             for (String item : hashes) {
                 version = item;
             }
-        } else {
+        } else if (outputString != null) {
             version = outputString
         }
         return version;
