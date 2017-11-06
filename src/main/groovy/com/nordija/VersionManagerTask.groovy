@@ -22,7 +22,6 @@ class VersionManagerTask extends DefaultTask {
 
     @TaskAction
     def findGitVersions() {
-        fetch()
         findBranch()
         findCurrentCommitHash()
         if (!branch.equals('HEAD')) {
@@ -52,10 +51,6 @@ class VersionManagerTask extends DefaultTask {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private void fetch() {
-        execGitCommand('git', 'fetch')
     }
 
     private void findParentBranch() {
@@ -265,7 +260,6 @@ class VersionManagerTask extends DefaultTask {
     }
 
     private String highestVersionNumber(String branch) {
-
         def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".");
         def outputString = execGitCommand('git', 'tag', '-l', extractedVersion + '*', '--sort=v:refname')
         def hashes;
@@ -284,8 +278,6 @@ class VersionManagerTask extends DefaultTask {
     String findGitHighestTag () {
         def outputString = execGitCommand('git','tag', '-l', '--sort=v:refname')
         if (outputString == null || outputString.empty) {
-            println "Testing gitHighestTag" + outputString
-            logger.info("Testing gitHighestTag" + outputString)
             return "0.0.0"
         }
         def hashes;
@@ -310,6 +302,12 @@ class VersionManagerTask extends DefaultTask {
         if (closestTag == null || closestTag.empty) {
             closestTag = "0.0.0";
         }
+        if (branch.startsWith('bugfix_') && closestTag.equals('0.0.0')) {
+            def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".")
+            closestTag = extractedVersion + '.0'
+
+        }
+
         logger.debug("Found ClosestTag: " + closestTag)
     }
 
@@ -357,7 +355,11 @@ class VersionManagerTask extends DefaultTask {
                 minor = minor.toLong() + 1;
                 bugfix = "0-SNAPSHOT";
             } else if (gitBranch.startsWith("bugfix")) {
-                bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT";
+                if (closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) {
+                    bugfix = '0-SNAPSHOT'
+                } else {
+                    bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT"
+                }
             } else {
                 def startIdx = 0;
                 def endIdx = 11;
