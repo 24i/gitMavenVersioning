@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url "https://ssl.nordija.com/artifactory/NordijaCentral"
+        maven { url "https://ssl.nordija.com/artifactory/NordijaPublic"
             credentials {
                 username = gradleUsername
                 password = gradlePassword
