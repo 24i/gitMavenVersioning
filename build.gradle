@@ -36,7 +36,7 @@ artifactory {
     contextUrl = 'https://ssl.nordija.com/artifactory/'
     publish {
         repository {
-            repoKey = 'fokuson-modules-release-local'
+            repoKey = 'fokuson-public-release-local'
             username = gradleUsername
             password = gradlePassword
             maven = true
