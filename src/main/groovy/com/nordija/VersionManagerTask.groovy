@@ -36,6 +36,7 @@ class VersionManagerTask extends DefaultTask {
         findGitDescribeVersion()
         findGitAppDescribeVersion()
         setVersions()
+        println "Version (project.version): " + project.version
     }
 
     private String execGitCommand(Object... commands) {

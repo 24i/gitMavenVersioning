@@ -1,14 +1,23 @@
 package com.nordija
 
-import org.gradle.api.Project
+
 import org.gradle.api.Plugin
+import org.gradle.api.Project
 
 class VersionManagerPlugin implements Plugin<Project> {
     Project project;
 
     void apply(Project target) {
         this.project = target;
-        target.task('version', type: VersionManagerTask)
+        final myTask = target.task('version', type: VersionManagerTask)
+        project.allprojects.each { proj ->
+            proj.tasks.all {
+                // Make sure to not add a circular dependency
+                if (it != myTask) {
+                    it.dependsOn(myTask)
+                }
+            }
+        }
         project.task('showVersion') {
             group = 'Help'
             description = 'Show the project version'
@@ -19,7 +28,6 @@ class VersionManagerPlugin implements Plugin<Project> {
         }
         project.tasks.showVersion  {
             doLast {
-                project.tasks.version.execute();
                 println "Version (project.version): " + project.version
                 println "Branch (System.properties.gitBranch): " + System.properties.gitBranch;
                 println "Parent Branch (System.properties.gitParentBranch): " + System.properties.gitParentBranch;
@@ -40,8 +48,7 @@ class VersionManagerPlugin implements Plugin<Project> {
         }
         project.tasks.findVersion  {
             doLast {
-                project.tasks.version.execute();
-                println "Version: " + project.version
+                project.tasks.version.execute()
             }
         }
 
