@@ -26,16 +26,13 @@ Example of buildscript addition:
             maven { url "http://repo.maven.apache.org/maven2" }
         }
         dependencies {
-            classpath group: 'com.nordija', name: 'gitMavenVersioning', version: '1.0.0'
+            classpath group: 'com.nordija', name: 'gitMavenVersioning', version: '1.0.+'
         }
     }
 
 Example of usage:
 
     apply plugin: 'com.nordija.versionManager'
-    afterEvaluate {
-        tasks.findVersion.execute()
-    }
 
 Two tasks can be called:
 

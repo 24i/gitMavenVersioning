@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url "https://ssl.nordija.com/artifactory/NordijaCentral"
+        maven { url "https://ssl.nordija.com/artifactory/NordijaPublic"
             credentials {
                 username = gradleUsername
                 password = gradlePassword
@@ -36,7 +36,7 @@ artifactory {
     contextUrl = 'https://ssl.nordija.com/artifactory/'
     publish {
         repository {
-            repoKey = 'fokuson-modules-release-local'
+            repoKey = 'fokuson-public-release-local'
             username = gradleUsername
             password = gradlePassword
             maven = true
