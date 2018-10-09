@@ -290,7 +290,7 @@ class VersionManagerTask extends DefaultTask {
         def closestTag = '';
         for (String item : hashes) {
             logger.info(item)
-            if (item.matches("[0-9.]*")) {
+            if (item.matches("[0-9|.|a-z|R|C|-]*")) {
                 closestTag = item
             }
 
