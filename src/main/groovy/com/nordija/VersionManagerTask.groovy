@@ -353,11 +353,13 @@ class VersionManagerTask extends DefaultTask {
                 return
             }
             if (gitBranch.equals("master")) {
-                minor = minor.toLong() + 1;
+                if (!closestTag.contains("-RC")) {
+                    minor = minor.toLong() + 1;
+                }
                 bugfix = "0-SNAPSHOT";
             } else if (gitBranch.startsWith("bugfix")) {
-                if (closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) {
-                    bugfix = '0-SNAPSHOT'
+                if ((closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) || closestTag.contains("-RC")) {
+                    bugfix = bugfix + '-SNAPSHOT'
                 } else {
                     bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT"
                 }
