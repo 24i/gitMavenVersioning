@@ -7,7 +7,7 @@ import static org.junit.Assert.*
 
 class VersionManagerPluginTest {
     @Test
-    public void greeterPluginAddsGreetingTaskToProject() {
+    public void findVersionPluginAddsFindVersionTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'com.nordija.versionManager'
 

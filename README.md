@@ -40,6 +40,8 @@ Two tasks can be called:
 
 **findVersion** will store all the information in the System.properties. all properties can be seen by showVersion
 
+**printVersion** will print the project.version
+
 A parameter called CI can be set to true if the plugin is running on a CI server. This will not try to call the remote origin for finding the parent branches. 
 The gradle command needs to be called like this:
 
