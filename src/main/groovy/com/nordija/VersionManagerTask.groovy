@@ -243,7 +243,7 @@ class VersionManagerTask extends DefaultTask {
                 } else if (branchToFindTag.equals("HEAD")) {
                     closestHighestTagHash = currentCommitHash;
                     findGitClosestTag();
-                    if (closestTag.contains('-')) {
+                    if (closestTag.contains('-') && !closestTag.contains("-RC")) {
                         def tag = closestTag.substring(0,closestTag.indexOf('-'))
                         this.closestHighestTagHash = execGitCommand('git', 'rev-list', '-n', '1', tag)
                     }
@@ -353,11 +353,11 @@ class VersionManagerTask extends DefaultTask {
                 return
             }
             if (gitBranch.equals("master")) {
-                minor = minor.toLong() + 1;
-                bugfix = "0-SNAPSHOT";
+                    minor = minor.toLong() + 1;
+                    bugfix = "0-SNAPSHOT";
             } else if (gitBranch.startsWith("bugfix")) {
-                if (closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) {
-                    bugfix = '0-SNAPSHOT'
+                if ((closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) || closestTag.contains("-RC")) {
+                    bugfix = bugfix + '-SNAPSHOT'
                 } else {
                     bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT"
                 }
