@@ -24,18 +24,12 @@ class VersionManagerTask extends DefaultTask {
 
     @Override
     Task configure(Closure closure) {
-        executeTask()
+        findGitVersions()
+        setVersions()
         return super.configure(closure)
     }
 
     @TaskAction
-    def executeTask() {
-        if (getProject().version == null || getProject().version.equals("")) {
-            findGitVersions()
-        }
-        setVersions()
-    }
-
     def findGitVersions() {
         findBranch()
         findCurrentCommitHash()
@@ -50,6 +44,7 @@ class VersionManagerTask extends DefaultTask {
         findMavenVersion()
         findGitDescribeVersion()
         findGitAppDescribeVersion()
+        setVersions()
     }
 
 
@@ -316,6 +311,9 @@ class VersionManagerTask extends DefaultTask {
         closestTag = execGitCommand('git', 'describe', '--tags', closestHighestTagHash)
         if (closestTag == null || closestTag.empty) {
             closestTag = "0.0.0";
+        }
+        if (branch == null) {
+            branch = "master"
         }
         if (branch.startsWith('bugfix_') && closestTag.equals('0.0.0')) {
             def extractedVersion = branch.replaceAll("bugfix_", "").replaceAll("_", ".")

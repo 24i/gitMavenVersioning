@@ -9,7 +9,7 @@ class VersionManagerTaskTest {
     @Test
     public void canAddTaskToProject() {
         Project project = ProjectBuilder.builder().build()
-        def task = project.task('findGitVersions', type: VersionManagerTask)
+        def task = project.task('testTask', type: VersionManagerTask)
         assertTrue(task instanceof VersionManagerTask)
     }
 }
