@@ -57,7 +57,9 @@ publishing {
 }
 apply plugin: 'com.nordija.versionManager'
 plugins.apply com.nordija.VersionManagerPlugin
-
+afterEvaluate {
+    tasks.findVersion.execute()
+}
 dependencies {
     testCompile 'junit:junit:4.11'
 }
