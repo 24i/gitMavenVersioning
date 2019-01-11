@@ -1,6 +1,8 @@
 package com.nordija
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecResult
 
@@ -20,7 +22,20 @@ class VersionManagerTask extends DefaultTask {
     String gitPaddedVersionCount;
     boolean snapshot = true;
 
+    @Override
+    Task configure(Closure closure) {
+        executeTask()
+        return super.configure(closure)
+    }
+
     @TaskAction
+    def executeTask() {
+        if (getProject().version == null || getProject().version.equals("")) {
+            findGitVersions()
+        }
+        setVersions()
+    }
+
     def findGitVersions() {
         findBranch()
         findCurrentCommitHash()
@@ -35,9 +50,8 @@ class VersionManagerTask extends DefaultTask {
         findMavenVersion()
         findGitDescribeVersion()
         findGitAppDescribeVersion()
-        setVersions()
-        println "Version (project.version): " + project.version
     }
+
 
     private String execGitCommand(Object... commands) {
         try {

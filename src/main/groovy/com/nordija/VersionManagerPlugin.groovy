@@ -7,8 +7,10 @@ import org.gradle.api.Project
 class VersionManagerPlugin implements Plugin<Project> {
     Project project;
 
+
     void apply(Project target) {
         this.project = target;
+
         final myTask = target.task('version', type: VersionManagerTask)
         project.allprojects.each { proj ->
             proj.tasks.all {
@@ -25,6 +27,10 @@ class VersionManagerPlugin implements Plugin<Project> {
         project.task('findVersion') {
             group = 'task'
             description = 'Find the version from git system'
+        }
+        project.task('printVersion') {
+            group = 'task'
+            description = 'Print the version from git system'
         }
         project.tasks.showVersion  {
             doLast {
@@ -47,8 +53,11 @@ class VersionManagerPlugin implements Plugin<Project> {
             }
         }
         project.tasks.findVersion  {
+//            println "Version (project.version): " + project.version
+        }
+        project.tasks.printVersion  {
             doLast {
-                project.tasks.version.execute()
+                println "Version (project.version): " + project.version
             }
         }
 
