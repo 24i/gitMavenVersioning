@@ -268,7 +268,11 @@ class VersionManagerTask extends DefaultTask {
         if (outputString.contains('\n')) {
             hashes = outputString.split('\n');
             for (String item : hashes) {
-                version = item;
+                if (item.matches("[0-9|.|a-z|R|C|-]*")) {
+                    if (version.empty || !(item.startsWith(version) && item.contains("RC"))) {
+                        version = item
+                    }
+                }
             }
         } else {
             version = outputString
@@ -289,7 +293,6 @@ class VersionManagerTask extends DefaultTask {
         }
         def closestTag = '';
         for (String item : hashes) {
-            logger.info(item)
             if (item.matches("[0-9|.|a-z|R|C|-]*")) {
                 if (closestTag.empty || !(item.startsWith(closestTag) && item.contains("RC"))) {
                     closestTag = item
