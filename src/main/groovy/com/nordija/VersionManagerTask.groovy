@@ -291,7 +291,9 @@ class VersionManagerTask extends DefaultTask {
         for (String item : hashes) {
             logger.info(item)
             if (item.matches("[0-9|.|a-z|R|C|-]*")) {
-                closestTag = item
+                if (closestTag.empty || !(item.startsWith(closestTag) && item.contains("RC"))) {
+                    closestTag = item
+                }
             }
 
         }
