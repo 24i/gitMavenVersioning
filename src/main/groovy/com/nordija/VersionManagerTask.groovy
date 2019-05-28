@@ -252,7 +252,7 @@ class VersionManagerTask extends DefaultTask {
                 } else if (branchToFindTag.equals("HEAD")) {
                     closestHighestTagHash = currentCommitHash;
                     findGitClosestTag();
-                    if (closestTag.contains('-') && !closestTag.contains("-RC")) {
+                    if (closestTag.contains('-') && !closestTag.contains("-RC"||"-M")) {
                         def tag = closestTag.substring(0,closestTag.indexOf('-'))
                         this.closestHighestTagHash = execGitCommand('git', 'rev-list', '-n', '1', tag)
                     }
@@ -277,8 +277,8 @@ class VersionManagerTask extends DefaultTask {
         if (outputString.contains('\n')) {
             hashes = outputString.split('\n');
             for (String item : hashes) {
-                if (item.matches("[0-9|.|a-z|R|C|-]*")) {
-                    if (version.empty || !(item.startsWith(version) && item.contains("RC"))) {
+                if (item.matches("[0-9|.|a-z|R|C|M|-]*")) {
+                    if (version.empty || !(item.startsWith(version) && item.contains("RC"||"M"))) {
                         version = item
                     }
                 }
@@ -302,8 +302,8 @@ class VersionManagerTask extends DefaultTask {
         }
         def closestTag = '';
         for (String item : hashes) {
-            if (item.matches("[0-9|.|a-z|R|C|-]*")) {
-                if (closestTag.empty || !(item.startsWith(closestTag) && item.contains("RC"))) {
+            if (item.matches("[0-9|.|a-z|R|C|M|-]*")) {
+                if (closestTag.empty || !(item.startsWith(closestTag) && item.contains("RC"||"M"))) {
                     closestTag = item
                 }
             }
@@ -373,7 +373,7 @@ class VersionManagerTask extends DefaultTask {
                     minor = minor.toLong() + 1;
                     bugfix = "0-SNAPSHOT";
             } else if (gitBranch.startsWith("bugfix")) {
-                if ((closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) || closestTag.contains("-RC")) {
+                if ((closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) || closestTag.contains("-RC"||"-M")) {
                     bugfix = bugfix + '-SNAPSHOT'
                 } else {
                     bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT"
