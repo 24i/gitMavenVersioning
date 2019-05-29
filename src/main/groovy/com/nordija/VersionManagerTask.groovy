@@ -370,8 +370,12 @@ class VersionManagerTask extends DefaultTask {
                 return
             }
             if (gitBranch.equals("master")) {
+                if (closestTag.contains("-M")) {
+                    bugfix = "0-SNAPSHOT";
+                } else {
                     minor = minor.toLong() + 1;
                     bugfix = "0-SNAPSHOT";
+                }
             } else if (gitBranch.startsWith("bugfix")) {
                 if ((closestHighestTagHash.equals('0') && bugfix.equals('0') && closestTagCount.equals('0')) || closestTag.contains("-RC") || closestTag.contains("-M")) {
                     bugfix = bugfix + '-SNAPSHOT'
