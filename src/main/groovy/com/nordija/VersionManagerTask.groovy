@@ -252,7 +252,7 @@ class VersionManagerTask extends DefaultTask {
                 } else if (branchToFindTag.equals("HEAD")) {
                     closestHighestTagHash = currentCommitHash;
                     findGitClosestTag();
-                    if (closestTag.contains('-') && (!closestTag.contains("-RC") || !closestTag.contains("-M"))) {
+                    if (closestTag.contains('-') && !closestTag.contains("-RC") && !closestTag.contains("-M")) {
                         def tag = closestTag.substring(0,closestTag.indexOf('-'))
                         this.closestHighestTagHash = execGitCommand('git', 'rev-list', '-n', '1', tag)
                     }
