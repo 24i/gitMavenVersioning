@@ -382,6 +382,8 @@ class VersionManagerTask extends DefaultTask {
                 } else {
                     bugfix = (bugfix.toLong() + 1) + "-SNAPSHOT"
                 }
+            } else if (parentBranch.equals("master") && gitBranch.startsWith('SPRINT-') && closestTag.contains("-M")) {
+                bugfix = "0" + gitBranch + "-SNAPSHOT";
             } else {
                 def startIdx = 0;
                 def endIdx = 11;
@@ -399,8 +401,6 @@ class VersionManagerTask extends DefaultTask {
                 }
                 if (!parentBranch.equals(branch) && parentBranch.startsWith('bugfix')) {
                     bugfix = (bugfix.toLong() + 1) +gitBranch + "-SNAPSHOT"
-                } else if (!parentBranch.equals(branch) && gitBranch.startsWith('SPRINT-') && closestTag.contains("-M")) {
-                    bugfix = "0" + gitBranch + "-SNAPSHOT";
                 } else {
                     minor = minor.toLong() + 1;
                     bugfix = "0" + gitBranch + "-SNAPSHOT";
