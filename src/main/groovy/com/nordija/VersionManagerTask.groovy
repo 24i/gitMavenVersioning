@@ -399,7 +399,7 @@ class VersionManagerTask extends DefaultTask {
                 }
                 if (!parentBranch.equals(branch) && parentBranch.startsWith('bugfix')) {
                     bugfix = (bugfix.toLong() + 1) +gitBranch + "-SNAPSHOT"
-                } else if (gitBranch.startsWith('SPRINT-') && closestTag.contains("-M")) {
+                } else if (gitBranch.startsWith('-') && closestTag.contains("-M")) {
                     bugfix = "0" + gitBranch + "-SNAPSHOT";
                 } else {
                     minor = minor.toLong() + 1;
