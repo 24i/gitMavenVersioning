@@ -231,6 +231,9 @@ class VersionManagerTask extends DefaultTask {
 
     void findBranch() {
         branch = execGitCommand('git','rev-parse', '--abbrev-ref', 'HEAD')
+        if (branch != null) {
+            branch = branch.replaceAll("[^\\dA-Za-z ]", "_")
+        }
         parentBranch = branch
         logger.debug("Found branch: " + branch)
 

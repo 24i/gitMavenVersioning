@@ -1,16 +1,20 @@
 buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-        maven { url "https://ssl.nordija.com/artifactory/NordijaPublic"
-            credentials {
-                username = gradleUsername
-                password = gradlePassword
+    ext {
+        myRepos = {
+            mavenLocal()
+            jcenter()
+            maven {
+                url "https://ssl.nordija.com/artifactory/NordijaPublic"
+                credentials {
+                    username = gradleUsername
+                    password = gradlePassword
+                }
             }
         }
     }
+    repositories myRepos
     dependencies {
-        classpath "com.nordija:gitMavenVersioning:1.0.22"
+        classpath "com.nordija:gitMavenVersioning:2.0.+"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0"
     }
 }
@@ -25,13 +29,7 @@ dependencies {
 
 apply plugin: 'maven'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
+repositories myRepos
 
 artifactory {
     contextUrl = 'https://ssl.nordija.com/artifactory/'
@@ -57,9 +55,7 @@ publishing {
 }
 apply plugin: 'com.nordija.versionManager'
 plugins.apply com.nordija.VersionManagerPlugin
-afterEvaluate {
-    tasks.findVersion.execute()
-}
+
 dependencies {
     testCompile 'junit:junit:4.11'
 }
