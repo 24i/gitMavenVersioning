@@ -14,7 +14,7 @@ buildscript {
     }
     repositories myRepos
     dependencies {
-        classpath "com.nordija:gitMavenVersioning:2.0.+"
+        classpath "com.nordija:gitMavenVersioning:2.2.+"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.7.3"
     }
 }
