@@ -4,7 +4,7 @@ buildscript {
             mavenLocal()
             jcenter()
             maven {
-                url "https://ssl.nordija.com/artifactory/NordijaPublic"
+                url "https://aminocom2.jfrog.io/artifactory/FokusOnPublic"
                 credentials {
                     username = gradleUsername
                     password = gradlePassword
@@ -15,7 +15,7 @@ buildscript {
     repositories myRepos
     dependencies {
         classpath "com.nordija:gitMavenVersioning:2.2.+"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.7.3"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.29.0"
     }
 }
 apply plugin: 'com.jfrog.artifactory'
@@ -32,7 +32,7 @@ apply plugin: 'maven'
 repositories myRepos
 
 artifactory {
-    contextUrl = 'https://ssl.nordija.com/artifactory/'
+    contextUrl = 'https://aminocom2.jfrog.io/artifactory/'
     publish {
         repository {
             repoKey = 'fokuson-public-release-local'
