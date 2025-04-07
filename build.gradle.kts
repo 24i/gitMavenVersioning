@@ -4,7 +4,6 @@ plugins {
     `maven-publish`
     `java-gradle-plugin`
     id("com.jfrog.artifactory") version ("4.33.1")
-    id("com.nordija.versionManager") version ("2.2.3")
 }
 kotlin {
     jvmToolchain(17)
