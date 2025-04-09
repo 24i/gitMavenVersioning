@@ -23,10 +23,15 @@ dependencies {
     testImplementation("junit:junit:4.11")
 }
 // -------------------------------------------------------------------------------------------------
-plugins.apply (VersionManagerPlugin::class)
+plugins.apply(VersionManagerPlugin::class)
+// -------------------------------------------------------------------------------------------------
+fun getVersionFromTag(): String = runCatching {
+    val props = System.getProperties()
+    props["gitHighestTag"].toString()
+}.getOrNull() ?: "0.0.0"
 // -------------------------------------------------------------------------------------------------
 val pluginGroup = "com.nordija"
-val pluginVersion = "2.2.4"
+val pluginVersion = getVersionFromTag()
 val pluginName = "versionManager"
 val pluginDescription = "Versioning plugin 24i"
 // -------------------------------------------------------------------------------------------------
