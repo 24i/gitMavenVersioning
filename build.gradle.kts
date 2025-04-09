@@ -16,7 +16,7 @@ dependencies {
 }
 // -------------------------------------------------------------------------------------------------
 val pluginGroup = "com.nordija"
-val pluginVersion = "2.2.3"
+val pluginVersion = "2.2.4"
 val pluginName = "versionManager"
 val pluginDescription = "Versioning plugin 24i"
 // -------------------------------------------------------------------------------------------------
