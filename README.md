@@ -1,7 +1,7 @@
 # Build of this plugin
 This is how to build the plugin and install it in your local repository
 
-    ./gradlew clean install
+    ./gradlew clean publishToMavenLocal
 
 To build from the build server and install it in artifactory
 
@@ -32,7 +32,15 @@ Example of buildscript addition:
 
 Example of usage:
 
-    apply plugin: 'com.nordija.versionManager'
+    groovy : 
+
+        apply plugin: 'com.nordija.versionManager'
+
+    kts :  
+
+        plugins { 
+            id("com.nordija.versionManager") version("2.2.3") // replace with current version
+        }
 
 Two tasks can be called:
 
