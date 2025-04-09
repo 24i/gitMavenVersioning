@@ -1,3 +1,11 @@
+import com.nordija.VersionManagerPlugin
+// -------------------------------------------------------------------------------------------------
+buildscript {
+    dependencies {
+        classpath("com.nordija:gitMavenVersioning:2.2.+")
+        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.29.0")
+    }
+}
 // -------------------------------------------------------------------------------------------------
 plugins {
     `kotlin-dsl`
@@ -14,6 +22,8 @@ dependencies {
     implementation(gradleKotlinDsl())
     testImplementation("junit:junit:4.11")
 }
+// -------------------------------------------------------------------------------------------------
+plugins.apply (VersionManagerPlugin::class)
 // -------------------------------------------------------------------------------------------------
 val pluginGroup = "com.nordija"
 val pluginVersion = "2.2.4"
