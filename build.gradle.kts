@@ -2,8 +2,8 @@ import com.nordija.VersionManagerPlugin
 // -------------------------------------------------------------------------------------------------
 buildscript {
     dependencies {
-        classpath("com.nordija:gitMavenVersioning:2.2.+")
-        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.29.0")
+        classpath(libs.git.maven.versioning)
+        classpath(libs.jfrog.buildinfo)
     }
 }
 // -------------------------------------------------------------------------------------------------
@@ -11,16 +11,16 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     `java-gradle-plugin`
-    id("com.jfrog.artifactory") version ("4.33.1")
+    alias(libs.plugins.jfrog.artifactory)
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(libs.versions.jvmToolchain.get().toInt())
 }
 dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
     implementation(gradleKotlinDsl())
-    testImplementation("junit:junit:4.11")
+    testImplementation(libs.junit)
 }
 // -------------------------------------------------------------------------------------------------
 plugins.apply(VersionManagerPlugin::class)
@@ -61,7 +61,6 @@ artifactory {
             setRepoKey("fokuson-public-release-local")
             setUsername(userName)
             setPassword(password)
-            setMavenCompatible(true)
             setVersion(pluginVersion)
         }
         defaults {

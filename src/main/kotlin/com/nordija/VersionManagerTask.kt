@@ -1,7 +1,7 @@
 package com.nordija
 
-import com.github.javaparser.utils.Log
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 @Suppress("unused")
@@ -21,20 +21,27 @@ open class VersionManagerTask : DefaultTask() {
     private var gitPaddedVersionCount: String? = null
     private var snapshot: Boolean = true
 
+    @Internal
+    var isCI : Boolean = false
+
     init {
         findGitVersions()
         setVersions()
     }
 
-    private fun execGitCommand(vararg commands: Any): String? = try {
+    private fun execGitCommand(
+        vararg commands: Any
+    ): String? = runCatching {
         project.providers.exec {
             commandLine(*commands)
+            isIgnoreExitValue = true
         }.standardOutput.asText.getOrElse("").trim { it <= ' ' }
-    } catch (e: Exception) {
-        logger.debug("E: Git command: ${commands.contentToString()}")
-        logger.debug("E: ${e.message}")
-        null
-    }
+    }.onFailure { e ->
+        if (logger.isDebugEnabled) {
+            logger.debug("E: Git command: ${commands.contentToString()}")
+            logger.debug("E: ${e.message}")
+        }
+    }.getOrNull()
 
     @TaskAction
     fun findGitVersions() {
@@ -95,8 +102,6 @@ open class VersionManagerTask : DefaultTask() {
     }
 
     private fun findLowestBranchForHash(hash: String): String {
-        var isCI = project.hasProperty("CI")
-        if (isCI) isCI = parseBoolean(project.properties["CI"].toString())
         val outputString = if (isCI) execGitCommand("git", "branch", "--contains", hash)
         else execGitCommand("git", "branch", "-r", "--contains", hash)
         if (outputString.isNullOrEmpty()) return ""
@@ -125,8 +130,6 @@ open class VersionManagerTask : DefaultTask() {
     }
 
     private fun parentBranchCommitHash(): String? {
-        var isCI = project.hasProperty("CI")
-        if (isCI) isCI = parseBoolean(project.properties["CI"].toString())
         val outputString = if (isCI)
             execGitCommand("git", "log", branch, "--not", "main", "--pretty=format:%P")
         else
@@ -143,7 +146,9 @@ open class VersionManagerTask : DefaultTask() {
         if (commitCount.isNullOrEmpty()) {
             commitCount = "0"
         }
-        logger.debug("Found commit count: $commitCount")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found commit count: $commitCount")
+        }
     }
 
     private fun setVersions() {
@@ -172,7 +177,9 @@ open class VersionManagerTask : DefaultTask() {
         if (currentShortCommitHash.isNullOrEmpty()) {
             currentShortCommitHash = "0"
         }
-        logger.debug("Found currentShortCommitHash: $currentShortCommitHash")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found currentShortCommitHash: $currentShortCommitHash")
+        }
     }
 
     private fun findCurrentCommitHash() {
@@ -180,14 +187,18 @@ open class VersionManagerTask : DefaultTask() {
         if (currentCommitHash.isNullOrEmpty()) {
             currentCommitHash = "NoHashFound"
         }
-        logger.debug("Found currentCommitHash: $currentCommitHash")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found currentCommitHash: $currentCommitHash")
+        }
     }
 
     private fun findBranch() {
         branch = execGitCommand("git", "rev-parse", "--abbrev-ref", "HEAD") ?: ""
         branch = branch.replace("[^\\dA-Za-z ]".toRegex(), "_")
         parentBranch = branch
-        logger.debug("Found branch: $branch")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found branch: $branch")
+        }
     }
 
     private fun findClosestTagHash() {
@@ -223,7 +234,9 @@ open class VersionManagerTask : DefaultTask() {
         if (closestHighestTagHash.isNullOrEmpty()) {
             this.closestHighestTagHash = "0"
         }
-        logger.debug("Found closestHighestTagHash: $closestHighestTagHash")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found closestHighestTagHash: $closestHighestTagHash")
+        }
     }
 
     @Suppress("RegExpDuplicateCharacterInClass")
@@ -274,7 +287,9 @@ open class VersionManagerTask : DefaultTask() {
                 .replace("_", ".")
             closestTag = "$extractedVersion.0"
         }
-        logger.debug("Found ClosestTag: $closestTag")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found ClosestTag: $closestTag")
+        }
     }
 
     private fun findCountFromClosestTagHash() {
@@ -282,7 +297,9 @@ open class VersionManagerTask : DefaultTask() {
         if (closestTagCount.isNullOrEmpty()) {
             closestTagCount = "0"
         }
-        logger.debug("Found tagCount: $closestTagCount")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found tagCount: $closestTagCount")
+        }
     }
 
     private fun findMavenVersion() {
@@ -375,8 +392,10 @@ open class VersionManagerTask : DefaultTask() {
         if (mavenVersion == localClosestTag && branch == "HEAD") {
             branch = mavenVersion!!
         }
-        logger.debug("Found mavenVersion: $mavenVersion")
-        logger.debug("Found gitPaddedVersionCount: $gitPaddedVersionCount")
+        if (logger.isDebugEnabled) {
+            logger.debug("Found mavenVersion: $mavenVersion")
+            logger.debug("Found gitPaddedVersionCount: $gitPaddedVersionCount")
+        }
     }
 
     private fun findGitDescribeVersion() {
@@ -389,7 +408,9 @@ open class VersionManagerTask : DefaultTask() {
                 "$mavenVersion-$commitCount-${currentShortCommitHash}"
             }
         }
-        logger.debug("found gitDescribe: $gitDescribe")
+        if (logger.isDebugEnabled) {
+            logger.debug("found gitDescribe: $gitDescribe")
+        }
     }
 
     private fun findGitAppDescribeVersion() {
@@ -399,12 +420,16 @@ open class VersionManagerTask : DefaultTask() {
             mavenVersion?.replace("-SNAPSHOT", "")
         }
         appVersion = mavenVersion?.replace("-SNAPSHOT", "")
-        logger.debug("found gitAppDescribe: $gitAppDescribe")
+        if (logger.isDebugEnabled) {
+            logger.debug("found gitAppDescribe: $gitAppDescribe")
+        }
     }
 
     private fun getClosestTagForHash(hash: String): String {
         val returnValue = execGitCommand("git", "describe", "--tags", hash) ?: "0.0.0"
-        logger.debug("ClosestTagForHash: $hash tag: $returnValue")
+        if (logger.isDebugEnabled) {
+            logger.debug("ClosestTagForHash: $hash tag: $returnValue")
+        }
         return returnValue
     }
 
@@ -431,13 +456,6 @@ open class VersionManagerTask : DefaultTask() {
         @Suppress("DefaultLocale")
         fun Long.to00() = String.format("%02d", this)
 
-        fun parseBoolean(
-            input: String,
-            default: Boolean = false
-        ): Boolean = runCatching {
-            java.lang.Boolean.parseBoolean(input)
-        }.onFailure { e ->
-            Log.error("E: ${e.message}")
-        }.getOrDefault(default)
+
     }
 }

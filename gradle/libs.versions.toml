@@ -1,0 +1,22 @@
+####################################################################################################
+# version catalo file
+####################################################################################################
+# it contains all the versions and libraries used in project
+# note: please keep sections and structure
+####################################################################################################
+[versions]
+# toolchain
+jvmToolchain = "17"
+# libs & plugins
+git-maven-versioning = "2.2.+"
+junit = "4.13.2"
+jfrog-artifactory = "5.2.5"
+jfrog-buildinfo="5.2.5"
+
+[libraries]
+junit = { module="junit:junit", version.ref="junit" }
+git-maven-versioning = { module = "com.nordija:gitMavenVersioning", version.ref = "git-maven-versioning" }
+jfrog-buildinfo = { module = "org.jfrog.buildinfo:build-info-extractor-gradle", version.ref="jfrog-buildinfo"}
+
+[plugins]
+jfrog-artifactory = { id = "com.jfrog.artifactory", version.ref="jfrog-artifactory" }
