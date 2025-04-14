@@ -5,6 +5,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 
+/**
+ * Plugin class
+ * Register plugin class to configure plugin for versioning
+ */
 class VersionManagerPlugin : Plugin<Project> {
     companion object {
         const val TASK_GROUP = "24i"
@@ -43,6 +47,7 @@ class VersionManagerPlugin : Plugin<Project> {
                 description = TASK_VERSION_DESCRIPTION
                 configure {
                     isCI = target.isCI
+                    targetProjectPath = target.path
                 }
             }
 

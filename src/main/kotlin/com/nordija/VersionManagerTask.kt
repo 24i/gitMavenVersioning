@@ -3,8 +3,16 @@ package com.nordija
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
+/**
+ * Main plugin task class
+ *
+ * Note: cache error can not be traced in this version and it is probably due another
+ * task depending on, and or base task itself, disabled yet
+ */
 @Suppress("unused")
+@DisableCachingByDefault
 open class VersionManagerTask : DefaultTask() {
     private var branch: String = ""
     private var parentBranch: String = ""
@@ -22,7 +30,13 @@ open class VersionManagerTask : DefaultTask() {
     private var snapshot: Boolean = true
 
     @Internal
-    var isCI : Boolean = false
+    var isCI: Boolean = false
+
+    @Internal
+    var targetProjectPath: String? = null
+
+    private val targetProject
+        get() = targetProjectPath?.let { p -> project.rootProject.project(p) }
 
     init {
         findGitVersions()
@@ -32,10 +46,10 @@ open class VersionManagerTask : DefaultTask() {
     private fun execGitCommand(
         vararg commands: Any
     ): String? = runCatching {
-        project.providers.exec {
+        targetProject?.providers?.exec {
             commandLine(*commands)
             isIgnoreExitValue = true
-        }.standardOutput.asText.getOrElse("").trim { it <= ' ' }
+        }?.standardOutput?.asText?.getOrElse("")?.trim { it <= ' ' }
     }.onFailure { e ->
         if (logger.isDebugEnabled) {
             logger.debug("E: Git command: ${commands.contentToString()}")
@@ -169,7 +183,7 @@ open class VersionManagerTask : DefaultTask() {
             System.setProperty("gitPaddedVersionCount", gitPaddedVersionCount ?: "")
         }
         System.setProperty("versionSnapshot", snapshot.toString())
-        mavenVersion?.let { mv -> project.version = mv }
+        mavenVersion?.let { mv -> targetProject?.version = mv }
     }
 
     private fun findCurrentCommitShortHash() {
@@ -257,9 +271,7 @@ open class VersionManagerTask : DefaultTask() {
                             item.contains("M")))
                 ) item else acc
             }
-        } else {
-            outputString
-        }
+        } else outputString
     }
 
     @Suppress("RegExpDuplicateCharacterInClass")
@@ -433,9 +445,11 @@ open class VersionManagerTask : DefaultTask() {
         return returnValue
     }
 
-    private fun isProjectDirty(): Boolean {
-        val resultValue = execGitCommand("git", "status", "--porcelain")
-        return (resultValue?.length ?: 0) > 2 && (resultValue?.split("\n")?.size ?: 0) > 0
+    private fun isProjectDirty(): Boolean = execGitCommand(
+        "git", "status", "--porcelain"
+    ).let { resultValue ->
+        ((resultValue?.length ?: 0) > 2) &&
+                ((resultValue?.split("\n")?.size ?: 0) > 0)
     }
 
     private fun compareVersions(v1: String, v2: String): Int {
@@ -455,7 +469,5 @@ open class VersionManagerTask : DefaultTask() {
     companion object {
         @Suppress("DefaultLocale")
         fun Long.to00() = String.format("%02d", this)
-
-
     }
 }
