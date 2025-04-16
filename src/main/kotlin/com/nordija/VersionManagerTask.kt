@@ -1,7 +1,7 @@
 package com.nordija
 
+import com.github.javaparser.utils.Log
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
@@ -29,14 +29,12 @@ open class VersionManagerTask : DefaultTask() {
     private var gitPaddedVersionCount: String? = null
     private var snapshot: Boolean = true
 
-    @Internal
-    var isCI: Boolean = false
-
-    @Internal
-    var targetProjectPath: String? = null
-
-    private val targetProject
-        get() = targetProjectPath?.let { p -> project.rootProject.project(p) }
+    private val isCI: Boolean
+        get() = if (hasProperty("CI")) {
+            parseBoolean(project.properties["CI"].toString())
+        } else {
+            false
+        }
 
     init {
         findGitVersions()
@@ -46,10 +44,10 @@ open class VersionManagerTask : DefaultTask() {
     private fun execGitCommand(
         vararg commands: Any
     ): String? = runCatching {
-        targetProject?.providers?.exec {
+        project.providers.exec {
             commandLine(*commands)
             isIgnoreExitValue = true
-        }?.standardOutput?.asText?.getOrElse("")?.trim { it <= ' ' }
+        }.standardOutput?.asText?.getOrElse("")?.trim { it <= ' ' }
     }.onFailure { e ->
         if (logger.isDebugEnabled) {
             logger.debug("E: Git command: ${commands.contentToString()}")
@@ -183,7 +181,7 @@ open class VersionManagerTask : DefaultTask() {
             System.setProperty("gitPaddedVersionCount", gitPaddedVersionCount ?: "")
         }
         System.setProperty("versionSnapshot", snapshot.toString())
-        mavenVersion?.let { mv -> targetProject?.version = mv }
+        mavenVersion?.let { mv -> project.version = mv }
     }
 
     private fun findCurrentCommitShortHash() {
@@ -469,5 +467,14 @@ open class VersionManagerTask : DefaultTask() {
     companion object {
         @Suppress("DefaultLocale")
         fun Long.to00() = String.format("%02d", this)
+
+        fun parseBoolean(
+            input: String,
+            default: Boolean = false
+        ): Boolean = runCatching {
+            java.lang.Boolean.parseBoolean(input)
+        }.onFailure { e ->
+            Log.error("E: ${e.message}")
+        }.getOrDefault(default)
     }
 }
