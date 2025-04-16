@@ -20,19 +20,6 @@ class VersionManagerPlugin : Plugin<Project> {
         const val TASK_FIND_VERSION_DESCRIPTION = "Find the version from git system"
         const val TASK_PRINT_VERSION_NAME = "printVersion"
         const val TASK_PRINT_VERSION_DESCRIPTION = "Print the version from git system"
-
-        private val Project.isCI : Boolean
-            get() = if (hasProperty("CI")) parseBoolean(properties["CI"].toString())
-            else false
-
-        fun parseBoolean(
-            input: String,
-            default: Boolean = false
-        ): Boolean = runCatching {
-            java.lang.Boolean.parseBoolean(input)
-        }.onFailure { e ->
-            Log.error("E: ${e.message}")
-        }.getOrDefault(default)
     }
 
     override fun apply(target: Project) {
@@ -45,10 +32,6 @@ class VersionManagerPlugin : Plugin<Project> {
             ).apply {
                 group = TASK_GROUP
                 description = TASK_VERSION_DESCRIPTION
-                configure {
-                    isCI = target.isCI
-                    targetProjectPath = target.path
-                }
             }
 
             // all tasks in project depends on main task
@@ -74,20 +57,17 @@ class VersionManagerPlugin : Plugin<Project> {
                     println("Version (project.version): " + project.version)
                     println("Branch (System.properties.gitBranch): " + System.getProperty("gitBranch"))
                     println(
-                        "Parent Branch (System.properties.gitParentBranch): " + System.getProperty(
-                            "gitParentBranch"
-                        )
+                        "Parent Branch (System.properties.gitParentBranch): " +
+                                System.getProperty("gitParentBranch")
                     )
                     println(
-                        "Highest tag hash (System.properties.gitHighestTagHash): " + System.getProperty(
-                            "gitHighestTagHash"
-                        )
+                        "Highest tag hash (System.properties.gitHighestTagHash): " +
+                                System.getProperty("gitHighestTagHash")
                     )
                     println("Highest tag (System.properties.gitHighestTag): " + System.getProperty("gitHighestTag"))
                     println(
-                        "Highest tag count (System.properties.gitHighestTagCount): " + System.getProperty(
-                            "gitHighestTagCount"
-                        )
+                        "Highest tag count (System.properties.gitHighestTagCount): " +
+                                System.getProperty("gitHighestTagCount")
                     )
                     println(
                         "Current commit short hash (System.properties.gitCurrentShortCommitHash): " + System.getProperty(
