@@ -54,25 +54,32 @@ gradlePlugin {
     }
 }
 // -------------------------------------------------------------------------------------------------
-artifactory {
-    setContextUrl("https://aminocom2.jfrog.io/artifactory/")
-    publish {
-        repository {
-            setRepoKey("fokuson-public-release-local")
-            setUsername(userName)
-            setPassword(password)
-            setVersion(pluginVersion)
-        }
-        defaults {
-            publications("mavenJava")
-        }
-    }
-}
-// -------------------------------------------------------------------------------------------------
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifact(tasks.jar.get()) {
+                classifier = "sources"
+            }
+        }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+artifactory {
+    setContextUrl("https://aminocom2.jfrog.io/artifactory/")
+    publish {
+        repository {
+            repoKey = "fokuson-public-release-local"
+            username = userName
+            password = password
+            setVersion(pluginVersion)
+        }
+        defaults {
+            publications("mavenJava")
+            setPublishPom(true)
+            setPublishArtifacts(true)
+            setPublishIvy(false)
         }
     }
 }
