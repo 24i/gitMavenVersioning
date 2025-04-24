@@ -37,8 +37,8 @@ val pluginDescription = "Versioning plugin 24i"
 // -------------------------------------------------------------------------------------------------
 val pluginId = "$pluginGroup.$pluginName"
 val pluginClass = "com.nordija.VersionManagerPlugin"
-val userName = project.property("gradleUsername") as String
-val password = project.property("gradlePassword") as String
+val gradleUserName = project.property("gradleUsername") as String
+val gradlePassword = project.property("gradlePassword") as String
 // -------------------------------------------------------------------------------------------------
 group = pluginGroup
 version = pluginVersion
@@ -70,10 +70,9 @@ artifactory {
     setContextUrl("https://aminocom2.jfrog.io/artifactory/")
     publish {
         repository {
-            setRepoKey("fokuson-public-release-local")
-            setUsername(userName)
-            setPassword(password)
-            setMavenCompatible(true)
+            repoKey = "fokuson-public-release-local"
+            username = gradleUserName
+            password = gradlePassword
             setVersion(pluginVersion)
         }
         defaults {
