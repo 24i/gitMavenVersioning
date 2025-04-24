@@ -10,7 +10,7 @@ jvmToolchain = "17"
 # libs & plugins
 git-maven-versioning = "2.2.+"
 junit = "4.13.2"
-jfrog = "4.33.1"
+jfrog = "5.2.5"
 
 [libraries]
 junit = { module="junit:junit", version.ref="junit" }
