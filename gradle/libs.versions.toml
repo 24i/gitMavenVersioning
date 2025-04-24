@@ -10,13 +10,12 @@ jvmToolchain = "17"
 # libs & plugins
 git-maven-versioning = "2.2.+"
 junit = "4.13.2"
-jfrog-artifactory = "5.2.5"
-jfrog-buildinfo="5.2.5"
+jfrog = "4.33.1"
 
 [libraries]
 junit = { module="junit:junit", version.ref="junit" }
 git-maven-versioning = { module = "com.nordija:gitMavenVersioning", version.ref = "git-maven-versioning" }
-jfrog-buildinfo = { module = "org.jfrog.buildinfo:build-info-extractor-gradle", version.ref="jfrog-buildinfo"}
+jfrog-buildinfo = { module = "org.jfrog.buildinfo:build-info-extractor-gradle", version.ref="jfrog"}
 
 [plugins]
-jfrog-artifactory = { id = "com.jfrog.artifactory", version.ref="jfrog-artifactory" }
+jfrog-artifactory = { id = "com.jfrog.artifactory", version.ref="jfrog" }

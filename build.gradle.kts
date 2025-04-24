@@ -1,5 +1,7 @@
 import com.nordija.VersionManagerPlugin
 // -------------------------------------------------------------------------------------------------
+plugins.apply(VersionManagerPlugin::class)
+// -------------------------------------------------------------------------------------------------
 buildscript {
     dependencies {
         classpath(libs.git.maven.versioning)
@@ -22,8 +24,6 @@ dependencies {
     implementation(gradleKotlinDsl())
     testImplementation(libs.junit)
 }
-// -------------------------------------------------------------------------------------------------
-plugins.apply(VersionManagerPlugin::class)
 // -------------------------------------------------------------------------------------------------
 fun getVersionFromTag(): String = runCatching {
     val props = System.getProperties()
@@ -70,16 +70,14 @@ artifactory {
     setContextUrl("https://aminocom2.jfrog.io/artifactory/")
     publish {
         repository {
-            repoKey = "fokuson-public-release-local"
-            username = userName
-            password = password
+            setRepoKey("fokuson-public-release-local")
+            setUsername(userName)
+            setPassword(password)
+            setMavenCompatible(true)
             setVersion(pluginVersion)
         }
         defaults {
             publications("mavenJava")
-            setPublishPom(true)
-            setPublishArtifacts(true)
-            setPublishIvy(false)
         }
     }
 }

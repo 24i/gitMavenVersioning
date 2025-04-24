@@ -3,7 +3,6 @@ package com.nordija
 import com.github.javaparser.utils.Log
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 
 /**
  * Main plugin task class
@@ -12,7 +11,6 @@ import org.gradle.work.DisableCachingByDefault
  * task depending on, and or base task itself, disabled yet
  */
 @Suppress("unused")
-@DisableCachingByDefault
 open class VersionManagerTask : DefaultTask() {
     private var branch: String = ""
     private var parentBranch: String = ""
